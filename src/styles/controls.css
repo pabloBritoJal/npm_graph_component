@@ -1,0 +1,33 @@
+.npm-controls-container {
+  position: absolute;
+  bottom: 4px; /* Tailwind bottom-1 = 0.25rem ≈ 4px */
+  left: calc(50% - 250px);
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  font-size: 12px;
+  color: white;
+  z-index: 50;
+}
+
+.npm-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.npm-controls-icon-yellow {
+  color: #facc15; /* text-yellow-400 */
+  font-size: 12px;
+}
+
+.npm-controls-icon-green {
+  color: #4ade80; /* text-green-400 */
+  font-size: 12px;
+}
+
+.npm-controls-icon-blue {
+  color: #60a5fa; /* text-blue-400 */
+  font-size: 12px;
+}

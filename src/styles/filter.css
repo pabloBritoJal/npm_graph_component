@@ -1,0 +1,47 @@
+.npm-filter-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 40;
+}
+
+.npm-filter-panel-inner {
+  position: relative;
+}
+
+.npm-filter-form {
+  padding: 4px; /* p-1 = 0.25rem */
+}
+
+.npm-filter-row {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+.npm-filter-action {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.npm-filter-go-button {
+  height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 12px;
+  text-align: center;
+  color: #0e7490; /* cyan-700 */
+  background-color: rgba(229, 231, 235, 0.75); /* gray-200/75 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: inline-block;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.npm-filter-go-button:active {
+  background-color: #0e7490; /* cyan-700 */
+  color: white;
+}

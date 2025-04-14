@@ -1,0 +1,45 @@
+{
+  "name": "npm_graph_component",
+  "version": "1.0.9",
+  "description": "Interactive 3D graph visualization component for React using Three.js and react-force-graph-3d",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && cp -r src/styles dist/styles && cp -r src/assets dist/assets && cp dist/index.js dist/index.mjs"
+  },
+  "keywords": [
+    "react",
+    "graph",
+    "3d",
+    "visualization",
+    "three",
+    "npm",
+    "typescript"
+  ],
+  "author": "Pablo Brito",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/three": "^0.142.0",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0 <20.0.0",
+    "react-dom": ">=18.0.0 <20.0.0",
+    "react-icons": "^5.5.0",
+    "react-force-graph-3d": ">=1.26.0 <2.0.0"
+  }
+}
