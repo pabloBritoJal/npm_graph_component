@@ -1,15 +1,12 @@
 .dealer-range-container {
   position: absolute;
-  top: 12px;
-  left: 10px;
+  bottom: 12px;
+  right: 10px;
   display: flex;
   flex-direction: column;
   font-size: 12px;
   color: #182931;
   z-index: 50;
-  background: #D9D9D8;
-  padding: 6px 10px;
-  border-radius: 6px;
   gap: 4px;
 }
 

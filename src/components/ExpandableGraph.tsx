@@ -29,13 +29,9 @@ import "../styles/graph.css";
 
 interface ExpandableGraphProps {
   graphData: GraphData;
-  legendVisibility: LegendVisibility;
 }
 
-export const ExpandableGraph = ({
-  graphData,
-  legendVisibility,
-}: ExpandableGraphProps) => {
+export const ExpandableGraph = ({ graphData }: ExpandableGraphProps) => {
   const fgRef = useRef<
     | ForceGraphMethods<NodeObject<GraphNode>, LinkObject<GraphNode, GraphLink>>
     | undefined
@@ -231,7 +227,7 @@ export const ExpandableGraph = ({
               geometry = new BoxGeometry(4, 4, 4);
               break;
             case "Segment":
-              geometry = new CylinderGeometry(2, 2, 2, 6);
+              geometry = new SphereGeometry(3, 12, 12);
               break;
             default:
               geometry = new SphereGeometry(3, 12, 12);
@@ -263,9 +259,9 @@ export const ExpandableGraph = ({
           }
 
           const shouldShowLabel =
-            (node.type === "Dealer" && legendVisibility.Dealership) ||
-            (node.type === "Heading" && legendVisibility.Heading) ||
-            (node.type === "Segment" && legendVisibility.Segment);
+            node.type === "Dealer" ||
+            node.type === "Heading" ||
+            node.type === "Segment";
 
           if (shouldShowLabel && node.name) {
             const sprite = createTextSprite(node.name, new Color("#182931"));
@@ -281,8 +277,8 @@ export const ExpandableGraph = ({
         <div
           className="npm-graph-tooltip"
           style={{
-            top: "90px",
-            right: "16px",
+            top: "10px",
+            right: "10px",
             zIndex: 1000,
             minWidth: "180px",
           }}
