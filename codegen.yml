@@ -1,0 +1,12 @@
+schema: "http://45.63.50.167:3535/graphql"
+documents: "src/apollo/queries/**/*.graphql"
+generates:
+  src/apollo/generated/graphql.tsx:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+    config:
+      withHooks: true
+      withHOC: false
+      withComponent: false

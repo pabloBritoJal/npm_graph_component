@@ -23,7 +23,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { GraphData, GraphLink, GraphNode } from "../types/graph_types";
-import { LegendVisibility } from "../types/labelVisibility";
 import { useContainerSize } from "../hooks/useContainerSize";
 import "../styles/graph.css";
 

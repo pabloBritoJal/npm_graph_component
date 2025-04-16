@@ -1,0 +1,14 @@
+query GetDealersGraph {
+  dealersGraph {
+    nodes {
+      id
+      name
+      type
+      color
+    }
+    links {
+      source
+      target
+    }
+  }
+}
