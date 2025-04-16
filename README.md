@@ -11,7 +11,6 @@ This reusable component lets you visualize hierarchical data and relationships b
 ## ✨ Features
 
 - Interactive 3D graph rendering with custom geometry per node type
-- Expandable node set using dynamic filters
 - Modular CSS and SVG assets included
 - Type-safe with full TypeScript support
 
@@ -44,11 +43,9 @@ import {
 
 const GraphCard = () => {
   const [graphData, setGraphData] = useState<GraphData>();
-
   const { data: dealersData, loading } = useGetDealersGraphQuery();
-  const { refetch: fetchExacts } = useGetAllExactsQuery({ skip: true });
 
-  const getInitialGraphData = (): GraphData | undefined => {
+  const getInitialGraphData = () => {
     if (!dealersData) return undefined;
     return {
       nodes: dealersData.dealersGraph.nodes.map((n) => ({
@@ -64,49 +61,19 @@ const GraphCard = () => {
     };
   };
 
-  const handleAddExacts = async (filterInput: FilterInput) => {
-    const { data } = await fetchExacts({ filter: filterInput });
-    if (!data || !dealersData) return;
-
-    const exactNodes: GraphNode[] = data.allExacts.nodes
-      .filter((n) => n.type !== "Segment")
-      .map((n) => ({
-        id: String(n.id),
-        type: n.type,
-        color: n.color || "#ccc",
-        name: n.id,
-      }));
-
-    const exactLinks: GraphLink[] = data.allExacts.links.map((l) => ({
-      source: l.source,
-      target: l.target,
-    }));
-
-    const initialData = getInitialGraphData();
-    if (!initialData) return;
-
-    const mergedData: GraphData = {
-      nodes: [...initialData.nodes, ...exactNodes],
-      links: [...initialData.links, ...exactLinks],
-    };
-
-    setGraphData(mergedData);
-  };
-
   useEffect(() => {
+    console.log(dealersData);
     if (dealersData) {
       const initData = getInitialGraphData();
+      console.log(initData);
       setGraphData(initData);
     }
   }, [dealersData]);
 
-  if (loading) return <h1>Loading...</h1>;
+  if (loading) return <DefaultSpinner />;
 
   return (
-    <GraphVisualizer
-      graphData={graphData}
-      handleAddExacts={handleAddExacts}
-    />
+    <GraphVisualizer graphData={graphData}/>
   );
 };
 ```
@@ -118,7 +85,7 @@ const GraphCard = () => {
 | Prop              | Type                                       | Required | Description                                                                  |
 |-------------------|---------------------------------------------|----------|------------------------------------------------------------------------------|
 | `graphData`       | `GraphData`                                | Yes      | Initial graph structure with nodes and links                                |
-| `handleAddExacts` | `(filterInput: FilterInput) => Promise<void>` | Yes      | Callback to dynamically inject additional nodes and links into the graph     |
+
 
 ---
 
@@ -156,14 +123,6 @@ The component supports:
 - GraphQL queries (as shown in the example)
 - REST APIs via fetch or Axios
 - Static/mock data passed directly
-
-## ⚖ HandleAddExacts - Filter function
-
-`(filterInput: FilterInput) => Promise<void>`
-
-The `handleAddExacts` function is designed to receive a `FilterInput` object (with optional make, model, and year fields), perform a fetch or query using those filters, and then merge new nodes and links into the existing graph data.
-
----
 
 ## ⚖ Peer dependencies
 

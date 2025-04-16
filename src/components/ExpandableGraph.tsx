@@ -112,7 +112,7 @@ export const ExpandableGraph = ({
       ctx.font = "bold 40px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = "rgba(255,255,255,0.1)";
+      ctx.fillStyle = "#D9D9D8";
       ctx.fillRect(0, 0, width, height);
       ctx.fillStyle = color.getStyle();
       wrapText(ctx, text, width / 2, height / 2, width - 20, 48);
@@ -159,6 +159,12 @@ export const ExpandableGraph = ({
   };
 
   useEffect(() => {
+    if (fgRef.current) {
+      fgRef.current.cameraPosition({ x: 0, y: 0, z: 200 }, undefined, 0);
+    }
+  }, [filteredGraphData]);
+
+  useEffect(() => {
     setDataGraph(graphData);
   }, [graphData]);
 
@@ -188,7 +194,7 @@ export const ExpandableGraph = ({
         width={width}
         height={height}
         graphData={filteredGraphData}
-        backgroundColor="#0d1b2a"
+        backgroundColor="#FFFFFF"
         onNodeClick={handleClick}
         onNodeHover={handleHover}
         onBackgroundClick={() => setSelectedNode(null)}
@@ -198,6 +204,8 @@ export const ExpandableGraph = ({
         linkDirectionalArrowRelPos={1.1}
         linkCurvature={0.25}
         nodeLabel={() => ""}
+        linkColor={() => "#182931"}
+        linkDirectionalArrowColor={() => "#182931"}
         nodeVal={(node) =>
           node.type === "Dealer"
             ? 8
@@ -212,7 +220,7 @@ export const ExpandableGraph = ({
         nodeColor={() => "#ffffff"}
         nodeThreeObject={(node) => {
           const isSelected = selectedNode && node.id !== selectedNode.id;
-          const color = new Color(isSelected ? "#6c757d" : node.color);
+          const color = new Color(isSelected ? "#182931" : node.color);
           let geometry: BufferGeometry;
 
           switch (node.type) {
@@ -231,7 +239,13 @@ export const ExpandableGraph = ({
 
           const mesh = new Mesh(
             geometry,
-            new MeshStandardMaterial({ color, metalness: 0.1 })
+            new MeshStandardMaterial({
+              color,
+              metalness: 0.5,
+              roughness: 0.2,
+              emissive: color,
+              emissiveIntensity: 0.4,
+            })
           );
           mesh.castShadow = mesh.receiveShadow = true;
 
@@ -240,7 +254,7 @@ export const ExpandableGraph = ({
             const lines = new LineSegments(
               edges,
               new LineBasicMaterial({
-                color: "#fff",
+                color: "#182931",
                 transparent: true,
                 opacity: 0.2,
               })
@@ -254,7 +268,7 @@ export const ExpandableGraph = ({
             (node.type === "Segment" && legendVisibility.Segment);
 
           if (shouldShowLabel && node.name) {
-            const sprite = createTextSprite(node.name, new Color("#fff"));
+            const sprite = createTextSprite(node.name, new Color("#182931"));
             sprite.position.y = 7;
             mesh.add(sprite);
           }
@@ -267,8 +281,8 @@ export const ExpandableGraph = ({
         <div
           className="npm-graph-tooltip"
           style={{
-            top: '56px',
-            right: '16px',
+            top: "90px",
+            right: "16px",
             zIndex: 1000,
             minWidth: "180px",
           }}

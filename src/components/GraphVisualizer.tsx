@@ -3,20 +3,16 @@ import { ExpandableGraph } from "../components/ExpandableGraph";
 import { GraphData } from "../types/graph_types";
 import { LegendVisibility, Levels } from "../types/labelVisibility";
 import ControlsIndicator from "../components/ControlsIndicator";
-import FilterPanel from "../components/FilterPanel";
 import { FilterInput } from "../types/filterInputType";
 import "../styles/graph.css";
 import LegendButtons from "./LegendButtons";
+import DealerRangeIndicator from "./DealerRangeIndicator";
 
 interface GraphVisualizerProps {
   graphData: GraphData | undefined;
-  handleAddExacts: (filterInput: FilterInput) => Promise<void>;
 }
 
-export const GraphVisualizer = ({
-  graphData,
-  handleAddExacts,
-}: GraphVisualizerProps) => {
+export const GraphVisualizer = ({ graphData }: GraphVisualizerProps) => {
   const [legendVisibility, setLegendVisibility] = useState<LegendVisibility>({
     Dealership: true,
     Heading: true,
@@ -42,7 +38,7 @@ export const GraphVisualizer = ({
           legendVisibility={legendVisibility}
         />
       )}
-      <FilterPanel setFilters={handleAddExacts} />
+      <DealerRangeIndicator />
       <ControlsIndicator />
     </div>
   );
