@@ -24,9 +24,9 @@ import {
   GetDealersGraphQuery,
 } from "../apollo/generated/graphql";
 import { createTextSprite } from "../utils/createToolTip";
-import { getPointAlongLine } from "../utils/getPointAlongLine";
 import { MdCenterFocusStrong } from "react-icons/md";
 import { IoReloadCircleSharp } from "react-icons/io5";
+import { calculateCenter } from "../utils/calculateCenter";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -51,19 +51,18 @@ export const ExpandableGraph = ({
   >(undefined);
 
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [initGraphData, setInitGraphData] = useState<GraphData>();
   const [currentGraphData, setCurrentGraphData] = useState<GraphData>();
   const [initNodes, setInitNodes] = useState<GraphNode[]>();
-  const [hideNodes, setHideNodes] = useState<boolean>(false);
 
   const [showGraph, setShowGraph] = useState(true);
 
   const segmentSelected = useRef<string>();
-  const amountNodes = useRef<number>(0);
+  const hideNodes = useRef<boolean>(false);
+
   const SCALE_NODES_DISTANCE = 20;
   const SCALE_NODES_MEDIUM_DISTANCE = 30;
-  const SCALE_NODES_LARGE_DISTANCE = 50;
+  const SCALE_NODES_LARGE_DISTANCE = 70;
 
   const { ref, width, height } = useContainerSize();
 
@@ -115,7 +114,6 @@ export const ExpandableGraph = ({
       nodes: [...initNodesWithCoors, ...exactNodes],
       links: [...initGraphData.links, ...exactLinks],
     };
-
     setCurrentGraphData(mergedData);
   };
 
@@ -126,14 +124,24 @@ export const ExpandableGraph = ({
   const handleClick = async (node: NodeObject<GraphNode>) => {
     if (node.type == "Segment") {
       if (node.name === segmentSelected.current) {
-        //hide nodes
+        handleHideNodes();
       } else {
         segmentSelected.current = node.name;
         await getExacts(node.name);
       }
-    } else {
-      setSelectedNode(node);
     }
+  };
+
+  const handleHideNodes = () => {
+    if (!initNodes) return;
+    if (!initGraphData) return;
+    const initNodesWithCoors = initNodes ?? [];
+    const mergedData: GraphData = {
+      nodes: [...initNodesWithCoors],
+      links: [...initGraphData.links],
+    };
+    hideNodes.current = true;
+    setCurrentGraphData(mergedData);
   };
 
   const centerCameraToGraph = () => {
@@ -182,48 +190,6 @@ export const ExpandableGraph = ({
     }
   }, [initGraphData]);
 
-  const calculateCenter = (
-    factor: number
-  ): {
-    centerX: number;
-    centerY: number;
-    centerZ: number;
-  } => {
-    const segmentName = segmentSelected.current;
-    if (!initGraphData || !segmentName || !initNodes)
-      return {
-        centerX: 0,
-        centerY: 0,
-        centerZ: 0,
-      };
-    const incomingLink = initGraphData.links.find(
-      (link) => String(link.target) === segmentName
-    );
-    const sourceNodeName = incomingLink?.source ?? "";
-    const sourceNode = initNodes.find((n) => n.name === sourceNodeName);
-    const incomingNode = initNodes.find((n) => n.name === segmentName);
-
-    const p3 = getPointAlongLine(
-      {
-        x: sourceNode?.fx ?? 0,
-        y: sourceNode?.fy ?? 0,
-        z: sourceNode?.fz ?? 0,
-      },
-      {
-        x: incomingNode?.fx ?? 0,
-        y: incomingNode?.fy ?? 0,
-        z: incomingNode?.fz ?? 0,
-      },
-      factor
-    );
-
-    return {
-      centerX: p3.x,
-      centerY: p3.y,
-      centerZ: p3.z,
-    };
-  };
-
   useEffect(() => {
     if (!exactsData) return;
     handleAddExacts();
@@ -231,6 +197,11 @@ export const ExpandableGraph = ({
 
   useEffect(() => {
     if (!exactsData || !fgRef.current) return;
+    if (hideNodes.current) {
+      hideNodes.current = false;
+      return;
+    }
+
     const nodesLength = currentGraphData?.nodes?.length ?? -1;
 
     let distanceFactor = SCALE_NODES_DISTANCE;
@@ -243,7 +214,12 @@ export const ExpandableGraph = ({
       distanceFactor = SCALE_NODES_LARGE_DISTANCE;
     }
 
-    const { centerX, centerY, centerZ } = calculateCenter(distanceFactor);
+    const { centerX, centerY, centerZ } = calculateCenter(
+      distanceFactor,
+      segmentSelected.current,
+      initGraphData,
+      initNodes
+    );
 
     const fg = fgRef.current;
     fg.d3Force("center")
@@ -252,10 +228,6 @@ export const ExpandableGraph = ({
       .z(centerZ * 3);
     fg.d3ReheatSimulation();
     centerCameraToGraph();
-  }, [currentGraphData]);
-
-  useEffect(() => {
-    amountNodes.current = currentGraphData?.nodes.length ?? 0;
   }, [currentGraphData]);
 
   return (
@@ -284,7 +256,6 @@ export const ExpandableGraph = ({
           backgroundColor="#FFFFFF"
           onNodeClick={handleClick}
           onNodeHover={handleHover}
-          onBackgroundClick={() => setSelectedNode(null)}
           cooldownTicks={400}
           showNavInfo={false}
           linkDirectionalArrowLength={3}
