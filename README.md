@@ -31,7 +31,7 @@ npm install react react-dom react-icons
 import { GraphComponent } from "npm_graph_component";
 
 const GraphCard = () => {
-  return <GraphComponent dealerId={$dealerId} maxNodes={1000} />;
+  return <GraphComponent dealerId={40337} maxNodes={1000} />;
 };
 
 export default GraphCard;
