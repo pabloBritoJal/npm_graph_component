@@ -57,3 +57,13 @@
   cursor: pointer;
   z-index: 1000;
 }
+
+.center-button {
+  position: absolute;
+  top: 44px;
+  left: 10px;
+  color: #182931;
+  font-size: 30px;
+  z-index: 1000;
+  cursor: pointer;
+}

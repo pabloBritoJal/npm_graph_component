@@ -11,6 +11,9 @@ import {
   SphereGeometry,
   ConeGeometry,
   BufferGeometry,
+  EdgesGeometry,
+  LineSegments,
+  LineBasicMaterial,
 } from "three";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GraphData, GraphLink, GraphNode } from "../types/graph_types";
@@ -52,6 +55,7 @@ export const ExpandableGraph = ({
   const [initGraphData, setInitGraphData] = useState<GraphData>();
   const [currentGraphData, setCurrentGraphData] = useState<GraphData>();
   const [initNodes, setInitNodes] = useState<GraphNode[]>();
+  const [hideNodes, setHideNodes] = useState<boolean>(false);
 
   const [showGraph, setShowGraph] = useState(true);
 
@@ -121,8 +125,12 @@ export const ExpandableGraph = ({
 
   const handleClick = async (node: NodeObject<GraphNode>) => {
     if (node.type == "Segment") {
-      segmentSelected.current = node.name;
-      await getExacts(node.name);
+      if (node.name === segmentSelected.current) {
+        //hide nodes
+      } else {
+        segmentSelected.current = node.name;
+        await getExacts(node.name);
+      }
     } else {
       setSelectedNode(node);
     }
@@ -263,22 +271,7 @@ export const ExpandableGraph = ({
       >
         <IoReloadCircleSharp />
       </div>
-      <div
-        onClick={centerCameraToGraph}
-        style={{
-          position: "absolute",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          width: "100px",
-          bottom: 10,
-          left: "calc(50% - 50px)",
-          color: "#182931",
-          fontSize: "30px",
-          zIndex: 1000,
-          cursor: "pointer",
-        }}
-      >
+      <div onClick={centerCameraToGraph} className="center-button">
         <MdCenterFocusStrong />
       </div>
       {showGraph && (
@@ -347,15 +340,16 @@ export const ExpandableGraph = ({
               );
               return mesh;
             }
-            const isSelected = selectedNode && node.id !== selectedNode.id;
-            const color = new Color(isSelected ? "#182931" : node.color);
+            let color = new Color(node.color);
 
             switch (node.type) {
               case "Dealer":
                 geometry = new ConeGeometry(3, 6, 12);
+                color = new Color("#9998F7");
                 break;
               case "Heading":
                 geometry = new BoxGeometry(4, 4, 4);
+                color = new Color("#6FB5E4");
                 break;
               case "Segment":
                 geometry = new SphereGeometry(3, 12, 12);
@@ -376,18 +370,18 @@ export const ExpandableGraph = ({
             );
             mesh.castShadow = mesh.receiveShadow = true;
 
-            // if (["Dealer", "Heading", "Segment"].includes(node.type)) {
-            //   const edges = new EdgesGeometry(geometry);
-            //   const lines = new LineSegments(
-            //     edges,
-            //     new LineBasicMaterial({
-            //       color: "#182931",
-            //       transparent: true,
-            //       opacity: 0.2,
-            //     })
-            //   );
-            //   mesh.add(lines);
-            // }
+            if (["Dealer", "Heading", "Segment"].includes(node.type)) {
+              const edges = new EdgesGeometry(geometry);
+              const lines = new LineSegments(
+                edges,
+                new LineBasicMaterial({
+                  color: "#182931",
+                  transparent: true,
+                  opacity: 0.2,
+                })
+              );
+              mesh.add(lines);
+            }
 
             const shouldShowLabel =
               node.type === "Dealer" ||
