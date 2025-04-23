@@ -1,4 +1,3 @@
-// src/apollo/ApolloWrapper.tsx
 import { ApolloProvider } from "@apollo/client";
 import { client } from "./client";
 import { ReactNode } from "react";

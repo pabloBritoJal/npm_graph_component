@@ -1,1 +1,1 @@
-export { GraphDashboard } from "./components/GraphComponent";
+export { GraphComponent } from "./components/GraphComponent";

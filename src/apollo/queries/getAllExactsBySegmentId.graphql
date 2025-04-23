@@ -1,0 +1,13 @@
+query GetAllExactsBySegment($dealerId: Float!, $segmentName: String!) {
+  allExactsBySegmentId(dealerId: $dealerId, segmentName: $segmentName) {
+    nodes {
+      id
+      type
+      color
+    }
+    links {
+      source
+      target
+    }
+  }
+}

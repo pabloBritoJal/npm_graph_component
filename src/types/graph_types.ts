@@ -5,6 +5,9 @@ export interface GraphNode {
   name: string;
   type: string;
   color: string;
+  fx?: number;
+  fy?: number;
+  fz?: number;
 }
 
 export type GraphLink = {

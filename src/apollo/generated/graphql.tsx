@@ -111,6 +111,7 @@ export type MdsResult = {
 export type Query = {
   __typename?: 'Query';
   allExacts: GraphResult;
+  allExactsBySegmentId: GraphResult;
   calculateMds: MdsResult;
   dealersGraph: GraphResult;
   exactInfo: ExactInfo;
@@ -123,10 +124,21 @@ export type QueryAllExactsArgs = {
 };
 
 
+export type QueryAllExactsBySegmentIdArgs = {
+  dealerId: Scalars['Float']['input'];
+  segmentName: Scalars['String']['input'];
+};
+
+
 export type QueryCalculateMdsArgs = {
   dealerId: Scalars['Int']['input'];
   distance: Scalars['Int']['input'];
   exactId: Scalars['Int']['input'];
+};
+
+
+export type QueryDealersGraphArgs = {
+  dealerId?: InputMaybe<Scalars['Float']['input']>;
 };
 
 
@@ -139,15 +151,74 @@ export type QueryGetMdsByDelaerIdArgs = {
   dealerId: Scalars['Int']['input'];
 };
 
-export type GetDealersGraphQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetAllExactsBySegmentQueryVariables = Exact<{
+  dealerId: Scalars['Float']['input'];
+  segmentName: Scalars['String']['input'];
+}>;
+
+
+export type GetAllExactsBySegmentQuery = { __typename?: 'Query', allExactsBySegmentId: { __typename?: 'GraphResult', nodes: Array<{ __typename?: 'GraphNode', id: string, type: string, color?: string | null }>, links: Array<{ __typename?: 'GraphLink', source: string, target: string }> } };
+
+export type GetDealersGraphQueryVariables = Exact<{
+  dealerId: Scalars['Float']['input'];
+}>;
 
 
 export type GetDealersGraphQuery = { __typename?: 'Query', dealersGraph: { __typename?: 'GraphResult', nodes: Array<{ __typename?: 'GraphNode', id: string, name?: string | null, type: string, color?: string | null }>, links: Array<{ __typename?: 'GraphLink', source: string, target: string }> } };
 
 
+export const GetAllExactsBySegmentDocument = gql`
+    query GetAllExactsBySegment($dealerId: Float!, $segmentName: String!) {
+  allExactsBySegmentId(dealerId: $dealerId, segmentName: $segmentName) {
+    nodes {
+      id
+      type
+      color
+    }
+    links {
+      source
+      target
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAllExactsBySegmentQuery__
+ *
+ * To run a query within a React component, call `useGetAllExactsBySegmentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllExactsBySegmentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllExactsBySegmentQuery({
+ *   variables: {
+ *      dealerId: // value for 'dealerId'
+ *      segmentName: // value for 'segmentName'
+ *   },
+ * });
+ */
+export function useGetAllExactsBySegmentQuery(baseOptions: Apollo.QueryHookOptions<GetAllExactsBySegmentQuery, GetAllExactsBySegmentQueryVariables> & ({ variables: GetAllExactsBySegmentQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllExactsBySegmentQuery, GetAllExactsBySegmentQueryVariables>(GetAllExactsBySegmentDocument, options);
+      }
+export function useGetAllExactsBySegmentLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllExactsBySegmentQuery, GetAllExactsBySegmentQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllExactsBySegmentQuery, GetAllExactsBySegmentQueryVariables>(GetAllExactsBySegmentDocument, options);
+        }
+export function useGetAllExactsBySegmentSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAllExactsBySegmentQuery, GetAllExactsBySegmentQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAllExactsBySegmentQuery, GetAllExactsBySegmentQueryVariables>(GetAllExactsBySegmentDocument, options);
+        }
+export type GetAllExactsBySegmentQueryHookResult = ReturnType<typeof useGetAllExactsBySegmentQuery>;
+export type GetAllExactsBySegmentLazyQueryHookResult = ReturnType<typeof useGetAllExactsBySegmentLazyQuery>;
+export type GetAllExactsBySegmentSuspenseQueryHookResult = ReturnType<typeof useGetAllExactsBySegmentSuspenseQuery>;
+export type GetAllExactsBySegmentQueryResult = Apollo.QueryResult<GetAllExactsBySegmentQuery, GetAllExactsBySegmentQueryVariables>;
 export const GetDealersGraphDocument = gql`
-    query GetDealersGraph {
-  dealersGraph {
+    query GetDealersGraph($dealerId: Float!) {
+  dealersGraph(dealerId: $dealerId) {
     nodes {
       id
       name
@@ -174,10 +245,11 @@ export const GetDealersGraphDocument = gql`
  * @example
  * const { data, loading, error } = useGetDealersGraphQuery({
  *   variables: {
+ *      dealerId: // value for 'dealerId'
  *   },
  * });
  */
-export function useGetDealersGraphQuery(baseOptions?: Apollo.QueryHookOptions<GetDealersGraphQuery, GetDealersGraphQueryVariables>) {
+export function useGetDealersGraphQuery(baseOptions: Apollo.QueryHookOptions<GetDealersGraphQuery, GetDealersGraphQueryVariables> & ({ variables: GetDealersGraphQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetDealersGraphQuery, GetDealersGraphQueryVariables>(GetDealersGraphDocument, options);
       }

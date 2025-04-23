@@ -1,5 +1,5 @@
-query GetDealersGraph {
-  dealersGraph {
+query GetDealersGraph($dealerId: Float!) {
+  dealersGraph(dealerId: $dealerId) {
     nodes {
       id
       name
