@@ -52,6 +52,12 @@ export const ExpandableGraph = ({
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
   const [initGraphData, setInitGraphData] = useState<GraphData>();
   const [currentGraphData, setCurrentGraphData] = useState<GraphData>();
+
+  const initNodesPositions = useRef<
+    Record<string, { fx: number; fy: number; fz: number }>
+  >({});
+  const nodesInitialized = useRef(false);
+
   const [initNodes, setInitNodes] = useState<GraphNode[]>();
 
   const [showGraph, setShowGraph] = useState(true);
@@ -98,21 +104,31 @@ export const ExpandableGraph = ({
         return acc;
       }, []);
 
-    const validTargetNames = new Set(exactNodes.map((n) => n.name));
+    const allNodeIds = new Set([
+      ...initGraphData.nodes.map((n) => n.id),
+      ...exactNodes.map((n) => n.id),
+    ]);
 
     const exactLinks: GraphLink[] = exactsData.allExactsBySegmentId.links
-      .filter((l) => validTargetNames.has(String(l.target)))
+      .filter(
+        (l) =>
+          allNodeIds.has(String(l.source)) && allNodeIds.has(String(l.target))
+      )
       .map((l) => ({
         source: l.source,
         target: l.target,
       }));
 
-    const initNodesWithCoors = initNodes ?? [];
+    const nodesWithPositions = initGraphData.nodes.map((node) => ({
+      ...node,
+      ...(initNodesPositions.current[node.id] || {}),
+    }));
 
     const mergedData: GraphData = {
-      nodes: [...initNodesWithCoors, ...exactNodes],
+      nodes: [...nodesWithPositions, ...exactNodes],
       links: [...initGraphData.links, ...exactLinks],
     };
+
     setCurrentGraphData(mergedData);
   };
 
@@ -282,6 +298,12 @@ export const ExpandableGraph = ({
               node.y !== undefined &&
               node.z !== undefined
             ) {
+              initNodesPositions.current[node.id] = {
+                fx: node.x,
+                fy: node.y,
+                fz: node.z,
+              };
+
               const initNode: GraphNode = {
                 id: node.id,
                 name: node.name,
