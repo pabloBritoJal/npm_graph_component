@@ -1,1 +1,2 @@
-export { GraphComponent } from "./components/GraphComponent";
+import "./styles/index.css";
+export * from "./components";

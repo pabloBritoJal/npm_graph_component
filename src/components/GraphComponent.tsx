@@ -1,8 +1,8 @@
-import React from "react";
 import { ApolloWrapper } from "../apollo/config/ApolloWrapper";
 import { GraphContainer } from "./GraphContainer";
+import "../styles/index.css";
 
-interface GraphComponentProps {
+export interface GraphComponentProps {
   dealerId: number;
   maxNodes: number;
 }

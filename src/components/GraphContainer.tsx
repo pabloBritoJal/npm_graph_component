@@ -9,7 +9,6 @@ import {
 import { ExpandableGraph } from "./ExpandableGraph";
 import DealerRangeIndicator from "./DealerRangeIndicator";
 import ControlsIndicator from "./ControlsIndicator";
-import "../styles/graph.css";
 
 interface GraphContainerProps {
   dealerId: number;
@@ -75,7 +74,7 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
   return (
     <div className="npm-graph-dashboard-container">
       {graphLoading && <DefaultSpinner />}
-      <h2 className="label">This graph reflects your current settings</h2>
+      <h2 className="current-settings-text">This graph reflects your current settings</h2>
       {graphData && (
         <ExpandableGraph
           graphData={graphData}

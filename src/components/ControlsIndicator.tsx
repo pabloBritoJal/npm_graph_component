@@ -1,5 +1,4 @@
 import { MdOutlineSwipe, MdPanToolAlt, MdZoomInMap } from "react-icons/md";
-import "../styles/controls.css";
 
 const ControlsIndicator = () => {
   return (

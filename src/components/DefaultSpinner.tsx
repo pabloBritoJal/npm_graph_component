@@ -1,10 +1,9 @@
-import spinner from "../assets/spinner.svg";
-import "../styles/spinner.css";
+import { FaSpinner } from "react-icons/fa";
 
 const DefaultSpinner = () => {
   return (
     <div className="default-spinner-overlay">
-      <img className="default-spinner-image" src={spinner} alt="loading..." />
+      <FaSpinner className="default-spinner-icon" />
     </div>
   );
 };

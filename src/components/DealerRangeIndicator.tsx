@@ -1,5 +1,4 @@
 import { FaFlag } from "react-icons/fa";
-import "../styles/dealerRange.css";
 
 const DealerRangeIndicator = () => {
   return (

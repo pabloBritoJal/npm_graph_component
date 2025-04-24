@@ -18,7 +18,6 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GraphData, GraphLink, GraphNode } from "../types/graph_types";
 import { useContainerSize } from "../hooks/useContainerSize";
-import "../styles/graph.css";
 import {
   GetAllExactsBySegmentQuery,
   GetDealersGraphQuery,
@@ -61,8 +60,8 @@ export const ExpandableGraph = ({
   const hideNodes = useRef<boolean>(false);
 
   const SCALE_NODES_DISTANCE = 20;
-  const SCALE_NODES_MEDIUM_DISTANCE = 30;
-  const SCALE_NODES_LARGE_DISTANCE = 70;
+  const SCALE_NODES_MEDIUM_DISTANCE = 50;
+  const SCALE_NODES_LARGE_DISTANCE = 100;
 
   const { ref, width, height } = useContainerSize();
 
@@ -206,9 +205,9 @@ export const ExpandableGraph = ({
 
     let distanceFactor = SCALE_NODES_DISTANCE;
 
-    if (nodesLength >= 0 && nodesLength < 1500) {
+    if (nodesLength >= 0 && nodesLength < 2000) {
       distanceFactor = SCALE_NODES_DISTANCE;
-    } else if (nodesLength >= 1500 && nodesLength <= 3500) {
+    } else if (nodesLength >= 2000 && nodesLength <= 5000) {
       distanceFactor = SCALE_NODES_MEDIUM_DISTANCE;
     } else if (nodesLength > 5000) {
       distanceFactor = SCALE_NODES_LARGE_DISTANCE;
