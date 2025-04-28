@@ -8,6 +8,9 @@ export interface GraphNode {
   fx?: number;
   fy?: number;
   fz?: number;
+  x?: number;
+  y?: number;
+  z?: number;
 }
 
 export type GraphLink = {

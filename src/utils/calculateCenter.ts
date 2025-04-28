@@ -1,8 +1,13 @@
 import { GraphData, GraphNode } from "../types/graph_types";
 import { getPointAlongLine } from "./getPointAlongLine";
 
+const SCALE_NODES_SHORT_DISTANCE = 10;
+const SCALE_NODES_DISTANCE = 20;
+const SCALE_NODES_MEDIUM_DISTANCE = 50;
+const SCALE_NODES_LARGE_DISTANCE = 100;
+
 export const calculateCenter = (
-  factor: number,
+  nodesLength: number,
   segmentName: string | undefined,
   initGraphData: GraphData | undefined,
   initNodes: GraphNode[] | undefined
@@ -17,6 +22,18 @@ export const calculateCenter = (
       centerY: 0,
       centerZ: 0,
     };
+
+  let distanceFactor = SCALE_NODES_DISTANCE;
+
+  if (nodesLength >= 0 && nodesLength < 1200) {
+    distanceFactor = SCALE_NODES_SHORT_DISTANCE;
+  } else if (nodesLength >= 1200 && nodesLength <= 2500) {
+    distanceFactor = SCALE_NODES_DISTANCE;
+  } else if (nodesLength >= 2500 && nodesLength <= 5000) {
+    distanceFactor = SCALE_NODES_MEDIUM_DISTANCE;
+  } else if (nodesLength > 5000) {
+    distanceFactor = SCALE_NODES_LARGE_DISTANCE;
+  }
 
   const incomingLink = initGraphData.links.find(
     (link) => String(link.target) === segmentName
@@ -36,7 +53,7 @@ export const calculateCenter = (
       y: incomingNode?.fy ?? 0,
       z: incomingNode?.fz ?? 0,
     },
-    factor
+    distanceFactor
   );
 
   return {

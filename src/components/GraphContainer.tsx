@@ -7,8 +7,8 @@ import {
   useGetDealersGraphQuery,
 } from "../apollo/generated/graphql";
 import { ExpandableGraph } from "./ExpandableGraph";
-import DealerRangeIndicator from "./DealerRangeIndicator";
-import ControlsIndicator from "./ControlsIndicator";
+import Modal from "./Modal";
+// import { LuExpand } from "react-icons/lu";
 
 interface GraphContainerProps {
   dealerId: number;
@@ -22,6 +22,25 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
     GetAllExactsBySegmentQuery | undefined
   >();
   const [reset, setReset] = useState(false);
+
+  //const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [forceGraphKey, setForceGraphKey] = useState(0);
+
+  // const handleToggleModal = async (open: boolean) => {
+  //   setIsLoading(true);
+  //   setIsModalOpen(open);
+  //   setGraphData(undefined);
+  //   await new Promise((resolve) => setTimeout(resolve, 50));
+  //   await resetData();
+  //   setIsLoading(false);
+  //   setForceGraphKey((prev) => prev + 1);
+  // };
+
+  // const openModal = () => handleToggleModal(true);
+  // const closeModal = () => handleToggleModal(false);
 
   const {
     data: dealersData,
@@ -48,9 +67,9 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
 
   const resetData = async () => {
     setgraphLoading(true);
+    setExactsData(undefined);
     const { data } = await refetchDealerData();
     if (data) {
-      setExactsData(undefined);
       setReset((prev) => !prev);
       setGraphData(data);
     }
@@ -73,20 +92,45 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
 
   return (
     <div className="npm-graph-dashboard-container">
-      {graphLoading && <DefaultSpinner />}
-      <h2 className="current-settings-text">This graph reflects your current settings</h2>
-      {graphData && (
-        <ExpandableGraph
-          graphData={graphData}
-          exactsData={exactsData}
-          getExacts={handleAddExacts}
-          reset={reset}
-          resetData={resetData}
-          maxNodes={maxNodes}
-        />
-      )}
-      <DealerRangeIndicator />
-      <ControlsIndicator />
+      <div
+        className="npm-graph-dashboard-container"
+        // style={{ display: isModalOpen ? "none" : "block" }}
+      >
+        {isLoading && <DefaultSpinner />}
+        {graphData && (
+          <ExpandableGraph
+            graphData={graphData}
+            exactsData={exactsData}
+            getExacts={handleAddExacts}
+            reset={reset}
+            resetData={resetData}
+            maxNodes={maxNodes}
+            isLoading={graphLoading}
+          />
+        )}
+      </div>
+
+      {/* <button onClick={openModal} className="open-modal-button">
+        <LuExpand />
+      </button>
+
+      {isModalOpen && (
+        <Modal onClose={closeModal}>
+          {isLoading && <DefaultSpinner />}
+          {graphData && (
+            <ExpandableGraph
+              key={`modal-graph-${forceGraphKey}`}
+              graphData={graphData}
+              exactsData={exactsData}
+              getExacts={handleAddExacts}
+              reset={reset}
+              resetData={resetData}
+              maxNodes={maxNodes}
+              isLoading={graphLoading}
+            />
+          )}
+        </Modal>
+      )} */}
     </div>
   );
 };

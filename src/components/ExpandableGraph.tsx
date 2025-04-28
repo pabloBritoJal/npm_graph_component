@@ -9,11 +9,12 @@ import {
   MeshStandardMaterial,
   BoxGeometry,
   SphereGeometry,
-  ConeGeometry,
   BufferGeometry,
   EdgesGeometry,
   LineSegments,
   LineBasicMaterial,
+  DodecahedronGeometry,
+  IcosahedronGeometry,
 } from "three";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GraphData, GraphLink, GraphNode } from "../types/graph_types";
@@ -23,9 +24,12 @@ import {
   GetDealersGraphQuery,
 } from "../apollo/generated/graphql";
 import { createTextSprite } from "../utils/createToolTip";
-import { MdCenterFocusStrong } from "react-icons/md";
-import { IoReloadCircleSharp } from "react-icons/io5";
+import { MdCenterFocusStrong } from "react-icons/md/index.js";
+import { IoReloadCircleSharp } from "react-icons/io5/index.js";
 import { calculateCenter } from "../utils/calculateCenter";
+import DefaultSpinner from "./DefaultSpinner";
+import DealerRangeIndicator from "./DealerRangeIndicator";
+import ControlsIndicator from "./ControlsIndicator";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -34,6 +38,7 @@ interface ExpandableGraphProps {
   reset: boolean;
   resetData: () => Promise<void>;
   maxNodes: number;
+  isLoading: boolean;
 }
 
 export const ExpandableGraph = ({
@@ -43,6 +48,7 @@ export const ExpandableGraph = ({
   reset,
   resetData,
   maxNodes,
+  isLoading,
 }: ExpandableGraphProps) => {
   const fgRef = useRef<
     | ForceGraphMethods<NodeObject<GraphNode>, LinkObject<GraphNode, GraphLink>>
@@ -52,22 +58,12 @@ export const ExpandableGraph = ({
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
   const [initGraphData, setInitGraphData] = useState<GraphData>();
   const [currentGraphData, setCurrentGraphData] = useState<GraphData>();
+  const initNodes = useRef<GraphNode[]>([]);
 
-  const initNodesPositions = useRef<
-    Record<string, { fx: number; fy: number; fz: number }>
-  >({});
-  const nodesInitialized = useRef(false);
-
-  const [initNodes, setInitNodes] = useState<GraphNode[]>();
-
-  const [showGraph, setShowGraph] = useState(true);
+  const [forceResetId, setForceResetId] = useState<number>(1);
 
   const segmentSelected = useRef<string>();
   const hideNodes = useRef<boolean>(false);
-
-  const SCALE_NODES_DISTANCE = 20;
-  const SCALE_NODES_MEDIUM_DISTANCE = 50;
-  const SCALE_NODES_LARGE_DISTANCE = 100;
 
   const { ref, width, height } = useContainerSize();
 
@@ -88,48 +84,53 @@ export const ExpandableGraph = ({
   };
 
   const handleAddExacts = async () => {
-    if (exactsData === undefined || !initNodes) return;
-    if (!initGraphData) return;
-    const exactNodes: GraphNode[] = exactsData.allExactsBySegmentId.nodes
+    if (!exactsData || initNodes.current.length === 0 || !initGraphData) return;
+
+    const exactNodes = exactsData.allExactsBySegmentId.nodes
       .filter((n) => n.type !== "Segment")
-      .reduce<GraphNode[]>((acc, n) => {
-        if (acc.length >= maxNodes) return acc;
-        acc.push({
-          id: String(n.id),
-          name: n.id,
-          type: n.type,
-          color: n.color || "#ccc",
-        });
-
-        return acc;
-      }, []);
-
-    const allNodeIds = new Set([
-      ...initGraphData.nodes.map((n) => n.id),
-      ...exactNodes.map((n) => n.id),
-    ]);
-
-    const exactLinks: GraphLink[] = exactsData.allExactsBySegmentId.links
-      .filter(
-        (l) =>
-          allNodeIds.has(String(l.source)) && allNodeIds.has(String(l.target))
-      )
+      .slice(0, maxNodes)
+      .map((n) => ({
+        id: n.id,
+        name: n.id,
+        type: n.type,
+        color: n.color || "#ccc",
+      }));
+    const validTargetNames = new Set(exactNodes.map((n) => n.name));
+    const exactLinks = exactsData.allExactsBySegmentId.links
+      .filter((l) => validTargetNames.has(String(l.target)))
       .map((l) => ({
         source: l.source,
         target: l.target,
       }));
 
-    const nodesWithPositions = initGraphData.nodes.map((node) => ({
-      ...node,
-      ...(initNodesPositions.current[node.id] || {}),
-    }));
+    const initNodesWithFixedPos = initGraphData.nodes.map((n) => {
+      const matchingInit = initNodes.current.find(
+        (init) => init.name === n.name
+      );
+      if (matchingInit) {
+        return {
+          ...n,
+          x: matchingInit.fx,
+          y: matchingInit.fy,
+          z: matchingInit.fz,
+          fx: matchingInit.fx,
+          fy: matchingInit.fy,
+          fz: matchingInit.fz,
+        };
+      }
+      return n;
+    });
 
-    const mergedData: GraphData = {
-      nodes: [...nodesWithPositions, ...exactNodes],
-      links: [...initGraphData.links, ...exactLinks],
-    };
+    const mergedNodes = [...initNodesWithFixedPos, ...exactNodes];
 
-    setCurrentGraphData(mergedData);
+    const validNodeIds = new Set(mergedNodes.map((n) => n.id));
+    const mergedLinks = [...initGraphData.links, ...exactLinks].filter((l) => {
+      const sourceId = typeof l.source === "string" ? l.source : l.source.id;
+      const targetId = typeof l.target === "string" ? l.target : l.target.id;
+      return validNodeIds.has(sourceId) && validNodeIds.has(targetId);
+    });
+
+    setCurrentGraphData({ nodes: mergedNodes, links: mergedLinks });
   };
 
   const handleHover = useCallback((node: NodeObject<GraphNode> | null) => {
@@ -148,15 +149,48 @@ export const ExpandableGraph = ({
   };
 
   const handleHideNodes = () => {
-    if (!initNodes) return;
-    if (!initGraphData) return;
-    const initNodesWithCoors = initNodes ?? [];
-    const mergedData: GraphData = {
-      nodes: [...initNodesWithCoors],
+    if (initNodes.current.length === 0 || !initGraphData) return;
+
+    const initNodesWithPositions = initNodes.current.map((n) => ({
+      ...n,
+      x: n.fx,
+      y: n.fy,
+      z: n.fz,
+    }));
+    const restoredData = {
+      nodes: initNodesWithPositions.map((n) => ({
+        ...n,
+        x: n.fx,
+        y: n.fy,
+        z: n.fz,
+      })),
       links: [...initGraphData.links],
     };
+
     hideNodes.current = true;
-    setCurrentGraphData(mergedData);
+    setCurrentGraphData(restoredData);
+  };
+
+  const handleResetGraph = async () => {
+    await resetData();
+    initNodes.current = [];
+
+    if (initGraphData) {
+      const onlyInitNodes = initGraphData.nodes.map((n) => ({
+        ...n,
+        x: n.fx,
+        y: n.fy,
+        z: n.fz,
+      }));
+
+      const onlyInitGraphData: GraphData = {
+        nodes: onlyInitNodes,
+        links: [...initGraphData.links],
+      };
+      setCurrentGraphData(onlyInitGraphData);
+    }
+
+    setForceResetId((prev) => prev + 1);
   };
 
   const centerCameraToGraph = () => {
@@ -167,8 +201,8 @@ export const ExpandableGraph = ({
     let centerY = 0;
     let centerZ = 180;
 
-    if (segmentSelected && initNodes) {
-      const selectedNode = initNodes.find(
+    if (segmentSelected && initNodes.current.length != 0) {
+      const selectedNode = initNodes.current.find(
         (n) => n.name === segmentSelected.current
       );
       centerX = selectedNode?.fx ?? 0;
@@ -195,8 +229,14 @@ export const ExpandableGraph = ({
       const initData = getInitialGraphData();
       setInitGraphData(initData);
       setCurrentGraphData(initData);
+      setForceResetId((prev) => prev + 1);
     }
   }, [graphData, reset]);
+
+  useEffect(() => {
+    if (!exactsData) return;
+    handleAddExacts();
+  }, [exactsData]);
 
   useEffect(() => {
     if (exactsData) return;
@@ -206,197 +246,176 @@ export const ExpandableGraph = ({
   }, [initGraphData]);
 
   useEffect(() => {
-    if (!exactsData) return;
-    handleAddExacts();
-  }, [exactsData]);
-
-  useEffect(() => {
     if (!exactsData || !fgRef.current) return;
     if (hideNodes.current) {
       hideNodes.current = false;
       return;
     }
 
-    const nodesLength = currentGraphData?.nodes?.length ?? -1;
+    const timer = setTimeout(() => {
+      const nodesLength = currentGraphData?.nodes?.length ?? -1;
+      const { centerX, centerY, centerZ } = calculateCenter(
+        nodesLength,
+        segmentSelected.current,
+        initGraphData,
+        initNodes.current
+      );
 
-    let distanceFactor = SCALE_NODES_DISTANCE;
+      const fg = fgRef.current;
+      if (fg) {
+        fg.d3Force("center")
+          ?.x(centerX * 3)
+          .y(centerY * 3)
+          .z(centerZ * 3);
+        fg.d3ReheatSimulation();
+        centerCameraToGraph();
+      }
+    }, 100);
 
-    if (nodesLength >= 0 && nodesLength < 2000) {
-      distanceFactor = SCALE_NODES_DISTANCE;
-    } else if (nodesLength >= 2000 && nodesLength <= 5000) {
-      distanceFactor = SCALE_NODES_MEDIUM_DISTANCE;
-    } else if (nodesLength > 5000) {
-      distanceFactor = SCALE_NODES_LARGE_DISTANCE;
-    }
-
-    const { centerX, centerY, centerZ } = calculateCenter(
-      distanceFactor,
-      segmentSelected.current,
-      initGraphData,
-      initNodes
-    );
-
-    const fg = fgRef.current;
-    fg.d3Force("center")
-      ?.x(centerX * 3)
-      .y(centerY * 3)
-      .z(centerZ * 3);
-    fg.d3ReheatSimulation();
-    centerCameraToGraph();
+    return () => clearTimeout(timer);
   }, [currentGraphData]);
 
   return (
     <div ref={ref} className="npm-graph-container">
-      <div
-        onClick={async () => {
-          setShowGraph(false);
-          await new Promise((resolve) => setTimeout(resolve, 0));
-          await resetData();
-          setShowGraph(true);
-        }}
-        className="reset-button"
-      >
+      {isLoading && <DefaultSpinner />}
+      <h2 className="current-settings-text">
+        This graph reflects your current settings
+      </h2>
+      <DealerRangeIndicator />
+      <ControlsIndicator />
+      <div onClick={handleResetGraph} className="reset-button">
         <IoReloadCircleSharp />
       </div>
       <div onClick={centerCameraToGraph} className="center-button">
         <MdCenterFocusStrong />
       </div>
-      {showGraph && (
-        <ForceGraph3D
-          ref={fgRef}
-          width={width}
-          height={height}
-          graphData={currentGraphData}
-          enableNodeDrag={false}
-          backgroundColor="#FFFFFF"
-          onNodeClick={handleClick}
-          onNodeHover={handleHover}
-          cooldownTicks={400}
-          showNavInfo={false}
-          linkDirectionalArrowLength={3}
-          linkDirectionalArrowRelPos={0.9}
-          linkCurvature={0.25}
-          linkDirectionalArrowColor={() => "#182931"}
-          linkColor={() => "#182931"}
-          nodeLabel={() => ""}
-          nodeVal={(node) =>
-            node.type === "Dealer"
-              ? 8
-              : node.type === "Heading"
-              ? 5
-              : node.type === "Segment"
-              ? 3
-              : node.type === "ExactId"
-              ? 1
-              : 2
+      <ForceGraph3D
+        key={forceResetId}
+        ref={fgRef}
+        width={width}
+        height={height}
+        graphData={currentGraphData}
+        enableNodeDrag={false}
+        backgroundColor="#FFFFFF"
+        onNodeClick={handleClick}
+        onNodeHover={handleHover}
+        cooldownTicks={400}
+        showNavInfo={false}
+        linkDirectionalArrowLength={3}
+        linkDirectionalArrowRelPos={0.9}
+        linkCurvature={0.25}
+        linkDirectionalArrowColor={() => "#182931"}
+        linkColor={() => "#182931"}
+        nodeLabel={() => ""}
+        nodeVal={(node) =>
+          node.type === "Dealer"
+            ? 8
+            : node.type === "Heading"
+            ? 5
+            : node.type === "Segment"
+            ? 3
+            : node.type === "ExactId"
+            ? 1
+            : 2
+        }
+        nodeColor={() => "#ffffff"}
+        nodeThreeObject={(node) => {
+          if (
+            !exactsData &&
+            node.x !== undefined &&
+            node.y !== undefined &&
+            node.z !== undefined
+          ) {
+            const initNode: GraphNode = {
+              id: node.id,
+              name: node.name,
+              type: node.type,
+              color: node.color,
+              fx: node.x,
+              fy: node.y,
+              fz: node.z,
+            };
+
+            if (!initNodes.current.find((n) => n.name === initNode.name)) {
+              initNodes.current = [...initNodes.current, initNode];
+            }
           }
-          nodeColor={() => "#ffffff"}
-          nodeThreeObject={(node) => {
-            if (
-              !exactsData &&
-              node.x !== undefined &&
-              node.y !== undefined &&
-              node.z !== undefined
-            ) {
-              initNodesPositions.current[node.id] = {
-                fx: node.x,
-                fy: node.y,
-                fz: node.z,
-              };
 
-              const initNode: GraphNode = {
-                id: node.id,
-                name: node.name,
-                type: node.type,
-                color: node.color,
-                fx: node.x,
-                fy: node.y,
-                fz: node.z,
-              };
-
-              setInitNodes((prev = []) => {
-                if (prev.find((n) => n.name === initNode.name)) return prev;
-                return [...prev, initNode];
-              });
-            }
-
-            let geometry: BufferGeometry;
-            if (node.type === "Exact") {
-              const colorBall = node.color;
-              geometry = new SphereGeometry(3, 12, 12);
-              const mesh = new Mesh(
-                geometry,
-                new MeshStandardMaterial({
-                  color: colorBall,
-                })
-              );
-              return mesh;
-            }
-            let color = new Color(node.color);
-
-            switch (node.type) {
-              case "Dealer":
-                geometry = new ConeGeometry(3, 6, 12);
-                color = new Color("#9998F7");
-                break;
-              case "Heading":
-                geometry = new BoxGeometry(4, 4, 4);
-                color = new Color("#6FB5E4");
-                break;
-              case "Segment":
-                geometry = new SphereGeometry(3, 12, 12);
-                break;
-              default:
-                geometry = new SphereGeometry(3, 12, 12);
-            }
-
+          let geometry: BufferGeometry;
+          if (node.type === "Exact") {
+            const colorBall = node.color;
+            geometry = new SphereGeometry(3, 12, 12);
             const mesh = new Mesh(
               geometry,
               new MeshStandardMaterial({
-                color,
-                metalness: 0.5,
-                roughness: 0.2,
-                emissive: color,
-                emissiveIntensity: 0.4,
+                color: colorBall,
               })
             );
-            mesh.castShadow = mesh.receiveShadow = true;
-
-            if (["Dealer", "Heading", "Segment"].includes(node.type)) {
-              const edges = new EdgesGeometry(geometry);
-              const lines = new LineSegments(
-                edges,
-                new LineBasicMaterial({
-                  color: "#182931",
-                  transparent: true,
-                  opacity: 0.2,
-                })
-              );
-              mesh.add(lines);
-            }
-
-            const shouldShowLabel =
-              node.type === "Dealer" ||
-              node.type === "Heading" ||
-              node.type === "Segment";
-
-            if (shouldShowLabel && node.name) {
-              const sprite = createTextSprite(node.name, new Color("#182931"));
-              sprite.position.y = 7;
-              mesh.add(sprite);
-            }
-
             return mesh;
-          }}
-        />
-      )}
+          }
+          let color = new Color(node.color);
 
+          switch (node.type) {
+            case "Dealer":
+              geometry = new DodecahedronGeometry(7);
+              color = new Color("#9998F7");
+              break;
+            case "Heading":
+              geometry = new IcosahedronGeometry(4);
+              color = new Color("#6FB5E4");
+              break;
+            case "Segment":
+              geometry = new BoxGeometry(3, 3, 3);
+              break;
+            default:
+              geometry = new SphereGeometry(2);
+          }
+
+          const mesh = new Mesh(
+            geometry,
+            new MeshStandardMaterial({
+              color,
+              metalness: 0.5,
+              roughness: 0.2,
+              emissive: color,
+              emissiveIntensity: 0.4,
+            })
+          );
+          mesh.castShadow = mesh.receiveShadow = true;
+
+          if (["Segment"].includes(node.type)) {
+            const edges = new EdgesGeometry(geometry);
+            const lines = new LineSegments(
+              edges,
+              new LineBasicMaterial({
+                color: "#6b7280",
+                transparent: true,
+                opacity: 0.2,
+              })
+            );
+            mesh.add(lines);
+          }
+
+          const shouldShowLabel =
+            node.type === "Dealer" ||
+            node.type === "Heading" ||
+            node.type === "Segment";
+
+          if (shouldShowLabel && node.name) {
+            const sprite = createTextSprite(node.name, new Color("#182931"));
+            sprite.position.y = node.type === "Dealer" ? 12 : 7;
+            mesh.add(sprite);
+          }
+
+          return mesh;
+        }}
+      />
       {hoveredNode && (
         <div
           className="npm-graph-tooltip"
           style={{
             top: "10px",
-            right: "10px",
+            left: "calc(50% - 90px)",
             zIndex: 1000,
             minWidth: "180px",
           }}

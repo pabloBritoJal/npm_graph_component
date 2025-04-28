@@ -1,4 +1,4 @@
-import { FaFlag } from "react-icons/fa";
+import { FaFlag } from "react-icons/fa/index.js";
 
 const DealerRangeIndicator = () => {
   return (
