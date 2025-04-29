@@ -17,6 +17,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type Configuration = {
+  __typename?: 'Configuration';
+  Dealer_Color?: Maybe<Scalars['String']['output']>;
+  Heading_Color?: Maybe<Scalars['String']['output']>;
+};
+
 export type ExactFilterInput = {
   adjustment?: InputMaybe<Scalars['Float']['input']>;
   bedLength?: InputMaybe<Scalars['String']['input']>;
@@ -108,6 +114,17 @@ export type MdsResult = {
   Sales: Scalars['Int']['output'];
 };
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  updateConfiguration: Scalars['Boolean']['output'];
+};
+
+
+export type MutationUpdateConfigurationArgs = {
+  Dealer_Color?: InputMaybe<Scalars['String']['input']>;
+  Heading_Color?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   allExacts: GraphResult;
@@ -115,7 +132,8 @@ export type Query = {
   calculateMds: MdsResult;
   dealersGraph: GraphResult;
   exactInfo: ExactInfo;
-  getMdsByDelaerId: MdsResult;
+  getConfiguration: Configuration;
+  getMdsByDealerId: MdsResult;
 };
 
 
@@ -147,7 +165,7 @@ export type QueryExactInfoArgs = {
 };
 
 
-export type QueryGetMdsByDelaerIdArgs = {
+export type QueryGetMdsByDealerIdArgs = {
   dealerId: Scalars['Int']['input'];
 };
 

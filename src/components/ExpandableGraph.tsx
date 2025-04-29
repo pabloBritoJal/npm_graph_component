@@ -25,11 +25,12 @@ import {
 } from "../apollo/generated/graphql";
 import { createTextSprite } from "../utils/createToolTip";
 import { MdCenterFocusStrong } from "react-icons/md/index.js";
-import { IoReloadCircleSharp } from "react-icons/io5/index.js";
+import { IoContract, IoReloadCircleSharp } from "react-icons/io5/index.js";
 import { calculateCenter } from "../utils/calculateCenter";
 import DefaultSpinner from "./DefaultSpinner";
 import DealerRangeIndicator from "./DealerRangeIndicator";
 import ControlsIndicator from "./ControlsIndicator";
+import { LuExpand } from "react-icons/lu/index.js";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -39,6 +40,9 @@ interface ExpandableGraphProps {
   resetData: () => Promise<void>;
   maxNodes: number;
   isLoading: boolean;
+  openModal: () => Promise<void>;
+  closeModal: () => Promise<void>;
+  isInModal: boolean;
 }
 
 export const ExpandableGraph = ({
@@ -49,6 +53,9 @@ export const ExpandableGraph = ({
   resetData,
   maxNodes,
   isLoading,
+  openModal,
+  closeModal,
+  isInModal,
 }: ExpandableGraphProps) => {
   const fgRef = useRef<
     | ForceGraphMethods<NodeObject<GraphNode>, LinkObject<GraphNode, GraphLink>>
@@ -267,8 +274,8 @@ export const ExpandableGraph = ({
           ?.x(centerX * 3)
           .y(centerY * 3)
           .z(centerZ * 3);
-        fg.d3ReheatSimulation();
-        centerCameraToGraph();
+       // fg.d3ReheatSimulation();
+        //centerCameraToGraph();
       }
     }, 100);
 
@@ -283,11 +290,17 @@ export const ExpandableGraph = ({
       </h2>
       <DealerRangeIndicator />
       <ControlsIndicator />
-      <div onClick={handleResetGraph} className="reset-button">
+      <div onClick={handleResetGraph} className="graph-reset-button">
         <IoReloadCircleSharp />
       </div>
-      <div onClick={centerCameraToGraph} className="center-button">
+      <div onClick={centerCameraToGraph} className="graph-center-button">
         <MdCenterFocusStrong />
+      </div>
+      <div
+        onClick={isInModal ? closeModal : openModal}
+        className="graph-open-modal-button"
+      >
+        {isInModal ? <IoContract /> : <LuExpand />}
       </div>
       <ForceGraph3D
         key={forceResetId}
@@ -297,7 +310,7 @@ export const ExpandableGraph = ({
         graphData={currentGraphData}
         enableNodeDrag={false}
         backgroundColor="#FFFFFF"
-        onNodeClick={handleClick}
+        // onNodeClick={handleClick}
         onNodeHover={handleHover}
         cooldownTicks={400}
         showNavInfo={false}
@@ -341,60 +354,24 @@ export const ExpandableGraph = ({
             }
           }
 
-          let geometry: BufferGeometry;
-          if (node.type === "Exact") {
-            const colorBall = node.color;
-            geometry = new SphereGeometry(3, 12, 12);
-            const mesh = new Mesh(
-              geometry,
-              new MeshStandardMaterial({
-                color: colorBall,
-              })
-            );
-            return mesh;
-          }
           let color = new Color(node.color);
 
           switch (node.type) {
             case "Dealer":
-              geometry = new DodecahedronGeometry(7);
               color = new Color("#9998F7");
               break;
             case "Heading":
-              geometry = new IcosahedronGeometry(4);
               color = new Color("#6FB5E4");
               break;
-            case "Segment":
-              geometry = new BoxGeometry(3, 3, 3);
-              break;
-            default:
-              geometry = new SphereGeometry(2);
           }
 
+          const geom = new SphereGeometry(2);
           const mesh = new Mesh(
-            geometry,
+            geom,
             new MeshStandardMaterial({
-              color,
-              metalness: 0.5,
-              roughness: 0.2,
-              emissive: color,
-              emissiveIntensity: 0.4,
+              color: color,
             })
           );
-          mesh.castShadow = mesh.receiveShadow = true;
-
-          if (["Segment"].includes(node.type)) {
-            const edges = new EdgesGeometry(geometry);
-            const lines = new LineSegments(
-              edges,
-              new LineBasicMaterial({
-                color: "#6b7280",
-                transparent: true,
-                opacity: 0.2,
-              })
-            );
-            mesh.add(lines);
-          }
 
           const shouldShowLabel =
             node.type === "Dealer" ||

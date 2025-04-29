@@ -2,21 +2,17 @@ import React, { useEffect, useState } from "react";
 
 type ModalProps = {
   children: React.ReactNode;
-  onClose: () => void;
 };
 
-const Modal = ({ children, onClose }: ModalProps) => {
+const Modal = ({ children }: ModalProps) => {
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
     return () => setIsMounted(false);
   }, []);
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button className="modal-close-button" onClick={onClose}>
-          ✕
-        </button>
+    <div className="graph-modal-overlay">
+      <div className="graph-modal-content">
         {isMounted && children}
       </div>
     </div>

@@ -8,7 +8,6 @@ import {
 } from "../apollo/generated/graphql";
 import { ExpandableGraph } from "./ExpandableGraph";
 import Modal from "./Modal";
-// import { LuExpand } from "react-icons/lu";
 
 interface GraphContainerProps {
   dealerId: number;
@@ -23,24 +22,24 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
   >();
   const [reset, setReset] = useState(false);
 
-  //const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
   const [forceGraphKey, setForceGraphKey] = useState(0);
 
-  // const handleToggleModal = async (open: boolean) => {
-  //   setIsLoading(true);
-  //   setIsModalOpen(open);
-  //   setGraphData(undefined);
-  //   await new Promise((resolve) => setTimeout(resolve, 50));
-  //   await resetData();
-  //   setIsLoading(false);
-  //   setForceGraphKey((prev) => prev + 1);
-  // };
+  const handleToggleModal = async (open: boolean) => {
+    setIsLoading(true);
+    setIsModalOpen(open);
+    setGraphData(undefined);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await resetData();
+    setIsLoading(false);
+    setForceGraphKey((prev) => prev + 1);
+  };
 
-  // const openModal = () => handleToggleModal(true);
-  // const closeModal = () => handleToggleModal(false);
+  const openModal = () => handleToggleModal(true);
+  const closeModal = () => handleToggleModal(false);
 
   const {
     data: dealersData,
@@ -88,13 +87,13 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
     dealersData?.dealersGraph.nodes.length === 0 &&
     dealersData?.dealersGraph.links.length === 0
   )
-    return null;
+    return <div className="npm-graph-dashboard-container graph-text-center">Data not available</div>;
 
   return (
     <div className="npm-graph-dashboard-container">
       <div
         className="npm-graph-dashboard-container"
-        // style={{ display: isModalOpen ? "none" : "block" }}
+        style={{ display: isModalOpen ? "none" : "block" }}
       >
         {isLoading && <DefaultSpinner />}
         {graphData && (
@@ -106,16 +105,14 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
             resetData={resetData}
             maxNodes={maxNodes}
             isLoading={graphLoading}
+            closeModal={closeModal}
+            openModal={openModal}
+            isInModal={isModalOpen}
           />
         )}
       </div>
-
-      {/* <button onClick={openModal} className="open-modal-button">
-        <LuExpand />
-      </button>
-
       {isModalOpen && (
-        <Modal onClose={closeModal}>
+        <Modal>
           {isLoading && <DefaultSpinner />}
           {graphData && (
             <ExpandableGraph
@@ -127,10 +124,13 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
               resetData={resetData}
               maxNodes={maxNodes}
               isLoading={graphLoading}
+              closeModal={closeModal}
+              openModal={openModal}
+              isInModal={isModalOpen}
             />
           )}
         </Modal>
-      )} */}
+      )}
     </div>
   );
 };
