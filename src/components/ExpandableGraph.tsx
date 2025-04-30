@@ -15,6 +15,7 @@ import {
   LineBasicMaterial,
   DodecahedronGeometry,
   IcosahedronGeometry,
+  MeshBasicMaterial,
 } from "three";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GraphData, GraphLink, GraphNode } from "../types/graph_types";
@@ -25,12 +26,15 @@ import {
 } from "../apollo/generated/graphql";
 import { createTextSprite } from "../utils/createToolTip";
 import { MdCenterFocusStrong } from "react-icons/md/index.js";
-import { IoContract, IoReloadCircleSharp } from "react-icons/io5/index.js";
+import {
+  IoContract,
+  IoReloadCircleSharp,
+  IoExpand,
+} from "react-icons/io5/index.js";
 import { calculateCenter } from "../utils/calculateCenter";
 import DefaultSpinner from "./DefaultSpinner";
 import DealerRangeIndicator from "./DealerRangeIndicator";
 import ControlsIndicator from "./ControlsIndicator";
-import { LuExpand } from "react-icons/lu/index.js";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -274,7 +278,7 @@ export const ExpandableGraph = ({
           ?.x(centerX * 3)
           .y(centerY * 3)
           .z(centerZ * 3);
-       // fg.d3ReheatSimulation();
+        // fg.d3ReheatSimulation();
         //centerCameraToGraph();
       }
     }, 100);
@@ -300,7 +304,7 @@ export const ExpandableGraph = ({
         onClick={isInModal ? closeModal : openModal}
         className="graph-open-modal-button"
       >
-        {isInModal ? <IoContract /> : <LuExpand />}
+        {isInModal ? <IoContract /> : <IoExpand />}
       </div>
       <ForceGraph3D
         key={forceResetId}
@@ -317,8 +321,8 @@ export const ExpandableGraph = ({
         linkDirectionalArrowLength={3}
         linkDirectionalArrowRelPos={0.9}
         linkCurvature={0.25}
-        linkDirectionalArrowColor={() => "#182931"}
-        linkColor={() => "#182931"}
+        linkDirectionalArrowColor={() => "#d3d3d3"}
+        linkMaterial={() => new MeshBasicMaterial({ color: "#d3d3d3" })}
         nodeLabel={() => ""}
         nodeVal={(node) =>
           node.type === "Dealer"
@@ -358,14 +362,16 @@ export const ExpandableGraph = ({
 
           switch (node.type) {
             case "Dealer":
-              color = new Color("#9998F7");
+              color = new Color("#949494");
               break;
             case "Heading":
-              color = new Color("#6FB5E4");
+              color = new Color("#C3C3C3");
               break;
           }
 
-          const geom = new SphereGeometry(2);
+          const geom = new SphereGeometry(
+            node.type === "Dealer" ? 4 : node.type === "Heading" ? 4 : 2
+          );
           const mesh = new Mesh(
             geom,
             new MeshStandardMaterial({
@@ -379,8 +385,12 @@ export const ExpandableGraph = ({
             node.type === "Segment";
 
           if (shouldShowLabel && node.name) {
-            const sprite = createTextSprite(node.name, new Color("#182931"));
-            sprite.position.y = node.type === "Dealer" ? 12 : 7;
+            const sprite = createTextSprite(
+              node.name,
+              new Color("#747272"),
+              node.type === "Dealer" ? "60px" : "40px"
+            );
+            sprite.position.y = node.type === "Dealer" ? 7 : 5;
             mesh.add(sprite);
           }
 

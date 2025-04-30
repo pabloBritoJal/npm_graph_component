@@ -41,20 +41,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.dealer-icon-red {
-  color: #f87171;
-  font-size: 12px;
-}
-
-.dealer-icon-yellow {
-  color: #facc15;
-  font-size: 12px;
-}
-
-.dealer-icon-green {
-  color: #4ade80;
   font-size: 12px;
 }
 
@@ -114,7 +100,7 @@
   align-items: center;
   color: #747272;
   font-size: small;
-  z-index: 1000;
+  z-index: 999;
 }
 
 .graph-reset-button {
@@ -194,3 +180,9 @@
   height: 90vh;
   overflow: auto;
 }
+
+.dealer-color-green { color: #DCFD35; }
+.dealer-color-blue { color: #6FB5E4; }
+.dealer-color-purple { color: #9998F7; }
+.dealer-color-red { color: #FF7C7C; }
+.dealer-color-orange { color: #FFB347; }

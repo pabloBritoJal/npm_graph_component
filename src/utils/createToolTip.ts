@@ -6,7 +6,11 @@ import {
   SpriteMaterial,
 } from "three";
 
-export const createTextSprite = (text: string, color: Color) => {
+export const createTextSprite = (
+  text: string,
+  color: Color,
+  fontSize: string
+) => {
   const canvas = document.createElement("canvas");
   const ratio = window.devicePixelRatio || 2;
   const width = 512,
@@ -19,11 +23,9 @@ export const createTextSprite = (text: string, color: Color) => {
   const ctx = canvas.getContext("2d");
   if (ctx) {
     ctx.scale(ratio, ratio);
-    ctx.font = "bold 40px Arial";
+    ctx.font = `bold ${fontSize} Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "#D9D9D8";
-    ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = color.getStyle();
     wrapText(ctx, text, width / 2, height / 2, width - 20, 48);
   }

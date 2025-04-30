@@ -4,16 +4,24 @@ const DealerRangeIndicator = () => {
   return (
     <div className="dealer-range-container">
       <div className="dealer-range-group">
-        <FaFlag className="dealer-icon-red" />
-        <span>80–89.5% or 110.5–120%</span>
+        <FaFlag className="dealer-color-red" />
+        <span>110% &lt; x ≤ 120%</span>
       </div>
       <div className="dealer-range-group">
-        <FaFlag className="dealer-icon-yellow" />
-        <span>90–94.5% or 105.5–110%</span>
+        <FaFlag className="dealer-color-orange" />
+        <span>105% &lt; x ≤ 110%</span>
       </div>
       <div className="dealer-range-group">
-        <FaFlag className="dealer-icon-green" />
-        <span>95–105%</span>
+        <FaFlag className="dealer-color-green" />
+        <span>95% &lt; x ≤ 105%</span>
+      </div>
+      <div className="dealer-range-group">
+        <FaFlag className="dealer-color-blue" />
+        <span>90% &lt; x ≤ 95%</span>
+      </div>
+      <div className="dealer-range-group">
+        <FaFlag className="dealer-color-purple" />
+        <span>80% &lt; x ≤ 90%</span>
       </div>
     </div>
   );
