@@ -1,19 +1,21 @@
-import { MdOutlineSwipe, MdPanToolAlt, MdZoomInMap } from "react-icons/md/index.js";
+import { HandIcon } from "../assets/HandIcon";
+import { MoveIcon } from "../assets/MoveIcon";
+import { ZoomIcon } from "../assets/ZoomIcon";
 
 const ControlsIndicator = () => {
   return (
     <div className="npm-controls-container">
       <div className="npm-controls-group">
         <span className="controls-group-text">Left mouse button</span>
-        <MdOutlineSwipe className="npm-controls-icon" />
+        <HandIcon className="npm-controls-icon" />
       </div>
       <div className="npm-controls-group">
         <span className="controls-group-text">Right mouse button</span>
-        <MdPanToolAlt className="npm-controls-icon" />
+        <MoveIcon className="npm-controls-icon" />
       </div>
       <div className="npm-controls-group">
         <span className="controls-group-text">Mouse wheel</span>
-        <MdZoomInMap className="npm-controls-icon" />
+        <ZoomIcon className="npm-controls-icon" />
       </div>
     </div>
   );

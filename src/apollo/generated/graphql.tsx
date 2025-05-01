@@ -94,6 +94,7 @@ export type GraphLink = {
 
 export type GraphNode = {
   __typename?: 'GraphNode';
+  adjustment?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   name?: Maybe<Scalars['String']['output']>;
@@ -117,12 +118,18 @@ export type MdsResult = {
 export type Mutation = {
   __typename?: 'Mutation';
   updateConfiguration: Scalars['Boolean']['output'];
+  updateSegments: Scalars['Boolean']['output'];
 };
 
 
 export type MutationUpdateConfigurationArgs = {
   Dealer_Color?: InputMaybe<Scalars['String']['input']>;
   Heading_Color?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateSegmentsArgs = {
+  segments: Array<Segment>;
 };
 
 export type Query = {
@@ -169,6 +176,11 @@ export type QueryGetMdsByDealerIdArgs = {
   dealerId: Scalars['Int']['input'];
 };
 
+export type Segment = {
+  adjustment: Scalars['Float']['input'];
+  segmentName: Scalars['String']['input'];
+};
+
 export type GetAllExactsBySegmentQueryVariables = Exact<{
   dealerId: Scalars['Float']['input'];
   segmentName: Scalars['String']['input'];
@@ -182,7 +194,14 @@ export type GetDealersGraphQueryVariables = Exact<{
 }>;
 
 
-export type GetDealersGraphQuery = { __typename?: 'Query', dealersGraph: { __typename?: 'GraphResult', nodes: Array<{ __typename?: 'GraphNode', id: string, name?: string | null, type: string, color?: string | null }>, links: Array<{ __typename?: 'GraphLink', source: string, target: string }> } };
+export type GetDealersGraphQuery = { __typename?: 'Query', dealersGraph: { __typename?: 'GraphResult', nodes: Array<{ __typename?: 'GraphNode', id: string, name?: string | null, type: string, color?: string | null, adjustment?: number | null }>, links: Array<{ __typename?: 'GraphLink', source: string, target: string }> } };
+
+export type UpdateSegmentsMutationVariables = Exact<{
+  segments: Array<Segment> | Segment;
+}>;
+
+
+export type UpdateSegmentsMutation = { __typename?: 'Mutation', updateSegments: boolean };
 
 
 export const GetAllExactsBySegmentDocument = gql`
@@ -242,6 +261,7 @@ export const GetDealersGraphDocument = gql`
       name
       type
       color
+      adjustment
     }
     links {
       source
@@ -283,3 +303,34 @@ export type GetDealersGraphQueryHookResult = ReturnType<typeof useGetDealersGrap
 export type GetDealersGraphLazyQueryHookResult = ReturnType<typeof useGetDealersGraphLazyQuery>;
 export type GetDealersGraphSuspenseQueryHookResult = ReturnType<typeof useGetDealersGraphSuspenseQuery>;
 export type GetDealersGraphQueryResult = Apollo.QueryResult<GetDealersGraphQuery, GetDealersGraphQueryVariables>;
+export const UpdateSegmentsDocument = gql`
+    mutation UpdateSegments($segments: [Segment!]!) {
+  updateSegments(segments: $segments)
+}
+    `;
+export type UpdateSegmentsMutationFn = Apollo.MutationFunction<UpdateSegmentsMutation, UpdateSegmentsMutationVariables>;
+
+/**
+ * __useUpdateSegmentsMutation__
+ *
+ * To run a mutation, you first call `useUpdateSegmentsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSegmentsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSegmentsMutation, { data, loading, error }] = useUpdateSegmentsMutation({
+ *   variables: {
+ *      segments: // value for 'segments'
+ *   },
+ * });
+ */
+export function useUpdateSegmentsMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSegmentsMutation, UpdateSegmentsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSegmentsMutation, UpdateSegmentsMutationVariables>(UpdateSegmentsDocument, options);
+      }
+export type UpdateSegmentsMutationHookResult = ReturnType<typeof useUpdateSegmentsMutation>;
+export type UpdateSegmentsMutationResult = Apollo.MutationResult<UpdateSegmentsMutation>;
+export type UpdateSegmentsMutationOptions = Apollo.BaseMutationOptions<UpdateSegmentsMutation, UpdateSegmentsMutationVariables>;

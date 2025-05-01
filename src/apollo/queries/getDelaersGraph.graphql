@@ -5,6 +5,7 @@ query GetDealersGraph($dealerId: Float!) {
       name
       type
       color
+      adjustment
     }
     links {
       source

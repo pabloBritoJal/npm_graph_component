@@ -12,6 +12,7 @@
 .npm-controls-group {
   display: flex;
   justify-content: end;
+  align-items: center;
   gap: 4px;
 }
 
@@ -94,7 +95,7 @@
   z-index: 1000;
 }
 
-.graph-text-center{
+.graph-text-center {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -134,7 +135,8 @@
 }
 
 .default-spinner-icon {
-  font-size: 4rem;
+  width: 4rem;
+  height: 4rem;
   color: white;
   animation: spin 1s linear infinite;
 }
@@ -181,8 +183,18 @@
   overflow: auto;
 }
 
-.dealer-color-green { color: #DCFD35; }
-.dealer-color-blue { color: #6FB5E4; }
-.dealer-color-purple { color: #9998F7; }
-.dealer-color-red { color: #FF7C7C; }
-.dealer-color-orange { color: #FFB347; }
+.range-1 {
+  color: #fe6f61;
+}
+.range-2 {
+  color: #feae51;
+}
+.range-3 {
+  color: #45b7a9;
+}
+.range-4 {
+  color: #b19cd9;
+}
+.range-5 {
+  color: #9c0f5f;
+}

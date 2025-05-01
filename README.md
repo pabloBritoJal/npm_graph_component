@@ -51,7 +51,6 @@ This package expects the following libraries to be present in your app:
 "peerDependencies": {
   "react": ">=18.0.0 <19.0.0",
   "react-dom": ">=18.0.0 <19.0.0",
-  "react-icons": "^5.5.0"
 }
 
 react-force-graph-3d, @apollo/client, and graphql are bundled internally, so no need to install them.

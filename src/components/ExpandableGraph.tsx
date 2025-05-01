@@ -25,16 +25,15 @@ import {
   GetDealersGraphQuery,
 } from "../apollo/generated/graphql";
 import { createTextSprite } from "../utils/createToolTip";
-import { MdCenterFocusStrong } from "react-icons/md/index.js";
-import {
-  IoContract,
-  IoReloadCircleSharp,
-  IoExpand,
-} from "react-icons/io5/index.js";
 import { calculateCenter } from "../utils/calculateCenter";
 import DefaultSpinner from "./DefaultSpinner";
 import DealerRangeIndicator from "./DealerRangeIndicator";
 import ControlsIndicator from "./ControlsIndicator";
+import { getColorByAdjustment } from "../utils/getRangeColor";
+import { ReloadIcon } from "../assets/ReloadIcon";
+import { CenterFocusIcon } from "../assets/CenterIcon";
+import { ContractionIcon } from "../assets/ContractIcon";
+import { CollapseIcon } from "../assets/CollapseIcon";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -86,6 +85,7 @@ export const ExpandableGraph = ({
         name: n.name || "",
         type: n.type,
         color: n.color || "#ccc",
+        adjustment: Number(n.adjustment),
       })),
       links: graphData.dealersGraph.links.map((l) => ({
         source: l.source,
@@ -295,16 +295,16 @@ export const ExpandableGraph = ({
       <DealerRangeIndicator />
       <ControlsIndicator />
       <div onClick={handleResetGraph} className="graph-reset-button">
-        <IoReloadCircleSharp />
+        <ReloadIcon />
       </div>
       <div onClick={centerCameraToGraph} className="graph-center-button">
-        <MdCenterFocusStrong />
+        <CenterFocusIcon />
       </div>
       <div
         onClick={isInModal ? closeModal : openModal}
         className="graph-open-modal-button"
       >
-        {isInModal ? <IoContract /> : <IoExpand />}
+        {isInModal ? <ContractionIcon /> : <CollapseIcon />}
       </div>
       <ForceGraph3D
         key={forceResetId}
@@ -362,20 +362,27 @@ export const ExpandableGraph = ({
 
           switch (node.type) {
             case "Dealer":
-              color = new Color("#949494");
+              color = new Color("#9998F7");
               break;
             case "Heading":
-              color = new Color("#C3C3C3");
+              color = new Color("#6FB5E4");
+              break;
+            case "Segment":
+              color = getColorByAdjustment(node.adjustment ?? 0);
               break;
           }
 
           const geom = new SphereGeometry(
-            node.type === "Dealer" ? 4 : node.type === "Heading" ? 4 : 2
+            node.type === "Dealer" ? 8 : node.type === "Heading" ? 4 : 2
           );
           const mesh = new Mesh(
             geom,
             new MeshStandardMaterial({
               color: color,
+              emissive: color, // le da un brillo del mismo color
+              emissiveIntensity: 0.5, // controla cuán fuerte brilla
+              metalness: 0.3, // mejora reflejos
+              roughness: 0.2,
             })
           );
 
@@ -388,9 +395,10 @@ export const ExpandableGraph = ({
             const sprite = createTextSprite(
               node.name,
               new Color("#747272"),
-              node.type === "Dealer" ? "60px" : "40px"
+              node.type === "Dealer" ? "80px" : "40px"
             );
-            sprite.position.y = node.type === "Dealer" ? 7 : 5;
+            sprite.position.y =
+              node.type === "Dealer" ? 12 : node.type === "Dealer" ? 8 : 5;
             mesh.add(sprite);
           }
 

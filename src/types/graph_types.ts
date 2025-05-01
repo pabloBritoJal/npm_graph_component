@@ -5,6 +5,7 @@ export interface GraphNode {
   name: string;
   type: string;
   color: string;
+  adjustment?: number;
   fx?: number;
   fy?: number;
   fz?: number;

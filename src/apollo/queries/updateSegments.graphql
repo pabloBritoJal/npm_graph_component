@@ -1,0 +1,3 @@
+mutation UpdateSegments($segments: [Segment!]!) {
+  updateSegments(segments: $segments)
+}
