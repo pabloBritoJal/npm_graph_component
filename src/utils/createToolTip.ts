@@ -13,7 +13,7 @@ export const createTextSprite = (
 ) => {
   const canvas = document.createElement("canvas");
   const ratio = window.devicePixelRatio || 2;
-  const width = 512,
+  const width = 800,
     height = 256;
   canvas.width = width * ratio;
   canvas.height = height * ratio;
@@ -27,7 +27,11 @@ export const createTextSprite = (
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = color.getStyle();
-    wrapText(ctx, text, width / 2, height / 2, width - 20, 48);
+
+    const numericFontSize = parseInt(fontSize, 10);
+    const lineHeight = numericFontSize * 1.4;
+
+    wrapText(ctx, text, width / 2, height / 2, width - 20, lineHeight);
   }
 
   const texture = new CanvasTexture(canvas);

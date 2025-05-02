@@ -47,6 +47,7 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
     refetch: refetchDealerData,
   } = useGetDealersGraphQuery({
     variables: { dealerId },
+    fetchPolicy: "network-only",
   });
 
   const { refetch: fetchExacts } = useGetAllExactsBySegmentQuery({
@@ -87,7 +88,11 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
     dealersData?.dealersGraph.nodes.length === 0 &&
     dealersData?.dealersGraph.links.length === 0
   )
-    return <div className="npm-graph-dashboard-container graph-text-center">Data not available</div>;
+    return (
+      <div className="npm-graph-dashboard-container graph-text-center">
+        Data not available
+      </div>
+    );
 
   return (
     <div className="npm-graph-dashboard-container">

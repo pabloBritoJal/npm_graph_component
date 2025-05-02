@@ -290,7 +290,7 @@ export const ExpandableGraph = ({
     <div ref={ref} className="npm-graph-container">
       {isLoading && <DefaultSpinner />}
       <h2 className="current-settings-text">
-        This graph reflects your current settings
+        This graph reflects your current iOffer algorithms
       </h2>
       <DealerRangeIndicator />
       <ControlsIndicator />
@@ -362,7 +362,7 @@ export const ExpandableGraph = ({
 
           switch (node.type) {
             case "Dealer":
-              color = new Color("#9998F7");
+              color = new Color("#0089d3");
               break;
             case "Heading":
               color = new Color("#6FB5E4");
@@ -379,9 +379,9 @@ export const ExpandableGraph = ({
             geom,
             new MeshStandardMaterial({
               color: color,
-              emissive: color, // le da un brillo del mismo color
-              emissiveIntensity: 0.5, // controla cuán fuerte brilla
-              metalness: 0.3, // mejora reflejos
+              emissive: color, 
+              emissiveIntensity: 0.5, 
+              metalness: 0.3, 
               roughness: 0.2,
             })
           );
@@ -398,7 +398,7 @@ export const ExpandableGraph = ({
               node.type === "Dealer" ? "80px" : "40px"
             );
             sprite.position.y =
-              node.type === "Dealer" ? 12 : node.type === "Dealer" ? 8 : 5;
+              node.type === "Dealer" ? 12 : node.type === "Heading" ? 6 : 4;
             mesh.add(sprite);
           }
 
