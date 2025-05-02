@@ -1,5 +1,5 @@
 import DefaultSpinner from "./DefaultSpinner";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   GetAllExactsBySegmentQuery,
   GetDealersGraphQuery,
@@ -22,7 +22,11 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
   >();
   const [reset, setReset] = useState(false);
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const isModalOpenRef = useRef<boolean>(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,6 +35,7 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
   const handleToggleModal = async (open: boolean) => {
     setIsLoading(true);
     setIsModalOpen(open);
+    isModalOpenRef.current = open;
     setGraphData(undefined);
     await new Promise((resolve) => setTimeout(resolve, 50));
     await resetData();
@@ -76,6 +81,37 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
     setgraphLoading(false);
   };
 
+  const handleDoubleClick = () => {
+    if (isModalOpenRef.current) return;
+    openModal();
+  };
+
+  const setContainerRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      node.addEventListener("dblclick", handleDoubleClick);
+      containerRef.current = node;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.removeEventListener("dblclick", handleDoubleClick);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isModalOpenRef.current) {
+        closeModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   useEffect(() => {
     if (dealersData) {
       setGraphData(dealersData);
@@ -95,7 +131,7 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
     );
 
   return (
-    <div className="npm-graph-dashboard-container">
+    <div className="npm-graph-dashboard-container" ref={setContainerRef}>
       <div
         className="npm-graph-dashboard-container"
         style={{ display: isModalOpen ? "none" : "block" }}

@@ -7,14 +7,7 @@ import {
   Color,
   Mesh,
   MeshStandardMaterial,
-  BoxGeometry,
   SphereGeometry,
-  BufferGeometry,
-  EdgesGeometry,
-  LineSegments,
-  LineBasicMaterial,
-  DodecahedronGeometry,
-  IcosahedronGeometry,
   MeshBasicMaterial,
 } from "three";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -25,15 +18,15 @@ import {
   GetDealersGraphQuery,
 } from "../apollo/generated/graphql";
 import { createTextSprite } from "../utils/createToolTip";
-import { calculateCenter } from "../utils/calculateCenter";
 import DefaultSpinner from "./DefaultSpinner";
-import DealerRangeIndicator from "./DealerRangeIndicator";
 import ControlsIndicator from "./ControlsIndicator";
 import { getColorByAdjustment } from "../utils/getRangeColor";
 import { ReloadIcon } from "../assets/ReloadIcon";
 import { CenterFocusIcon } from "../assets/CenterIcon";
 import { ContractionIcon } from "../assets/ContractIcon";
 import { CollapseIcon } from "../assets/CollapseIcon";
+import { adjustmentRanges } from "../utils/adjusmentsRange";
+import { DealerRangeIndicator } from "./DealerRangeIndicator";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -51,10 +44,8 @@ interface ExpandableGraphProps {
 export const ExpandableGraph = ({
   graphData,
   exactsData,
-  getExacts,
   reset,
   resetData,
-  maxNodes,
   isLoading,
   openModal,
   closeModal,
@@ -68,12 +59,11 @@ export const ExpandableGraph = ({
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
   const [initGraphData, setInitGraphData] = useState<GraphData>();
   const [currentGraphData, setCurrentGraphData] = useState<GraphData>();
-  const initNodes = useRef<GraphNode[]>([]);
+  const [activeRange, setActiveRange] = useState<string | null>(null);
 
   const [forceResetId, setForceResetId] = useState<number>(1);
 
-  const segmentSelected = useRef<string>();
-  const hideNodes = useRef<boolean>(false);
+  const [freezeLayout, setFreezeLayout] = useState(false);
 
   const { ref, width, height } = useContainerSize();
 
@@ -94,97 +84,13 @@ export const ExpandableGraph = ({
     };
   };
 
-  const handleAddExacts = async () => {
-    if (!exactsData || initNodes.current.length === 0 || !initGraphData) return;
-
-    const exactNodes = exactsData.allExactsBySegmentId.nodes
-      .filter((n) => n.type !== "Segment")
-      .slice(0, maxNodes)
-      .map((n) => ({
-        id: n.id,
-        name: n.id,
-        type: n.type,
-        color: n.color || "#ccc",
-      }));
-    const validTargetNames = new Set(exactNodes.map((n) => n.name));
-    const exactLinks = exactsData.allExactsBySegmentId.links
-      .filter((l) => validTargetNames.has(String(l.target)))
-      .map((l) => ({
-        source: l.source,
-        target: l.target,
-      }));
-
-    const initNodesWithFixedPos = initGraphData.nodes.map((n) => {
-      const matchingInit = initNodes.current.find(
-        (init) => init.name === n.name
-      );
-      if (matchingInit) {
-        return {
-          ...n,
-          x: matchingInit.fx,
-          y: matchingInit.fy,
-          z: matchingInit.fz,
-          fx: matchingInit.fx,
-          fy: matchingInit.fy,
-          fz: matchingInit.fz,
-        };
-      }
-      return n;
-    });
-
-    const mergedNodes = [...initNodesWithFixedPos, ...exactNodes];
-
-    const validNodeIds = new Set(mergedNodes.map((n) => n.id));
-    const mergedLinks = [...initGraphData.links, ...exactLinks].filter((l) => {
-      const sourceId = typeof l.source === "string" ? l.source : l.source.id;
-      const targetId = typeof l.target === "string" ? l.target : l.target.id;
-      return validNodeIds.has(sourceId) && validNodeIds.has(targetId);
-    });
-
-    setCurrentGraphData({ nodes: mergedNodes, links: mergedLinks });
-  };
-
   const handleHover = useCallback((node: NodeObject<GraphNode> | null) => {
     setHoveredNode(node ?? null);
   }, []);
 
-  const handleClick = async (node: NodeObject<GraphNode>) => {
-    if (node.type == "Segment") {
-      if (node.name === segmentSelected.current) {
-        handleHideNodes();
-      } else {
-        segmentSelected.current = node.name;
-        await getExacts(node.name);
-      }
-    }
-  };
-
-  const handleHideNodes = () => {
-    if (initNodes.current.length === 0 || !initGraphData) return;
-
-    const initNodesWithPositions = initNodes.current.map((n) => ({
-      ...n,
-      x: n.fx,
-      y: n.fy,
-      z: n.fz,
-    }));
-    const restoredData = {
-      nodes: initNodesWithPositions.map((n) => ({
-        ...n,
-        x: n.fx,
-        y: n.fy,
-        z: n.fz,
-      })),
-      links: [...initGraphData.links],
-    };
-
-    hideNodes.current = true;
-    setCurrentGraphData(restoredData);
-  };
-
   const handleResetGraph = async () => {
+    setFreezeLayout(false);
     await resetData();
-    initNodes.current = [];
 
     if (initGraphData) {
       const onlyInitNodes = initGraphData.nodes.map((n) => ({
@@ -212,27 +118,51 @@ export const ExpandableGraph = ({
     let centerY = 0;
     let centerZ = 180;
 
-    if (segmentSelected && initNodes.current.length != 0) {
-      const selectedNode = initNodes.current.find(
-        (n) => n.name === segmentSelected.current
-      );
-      centerX = selectedNode?.fx ?? 0;
-      centerY = selectedNode?.fy ?? 0;
-      centerZ = 0;
-    } else {
-      const bbox = fg.getGraphBbox();
-      if (!bbox) return;
-
-      centerX = (bbox.x[0] + bbox.x[1]) / 2;
-      centerY = (bbox.y[0] + bbox.y[1]) / 2;
-      centerZ = (bbox.z[0] + bbox.z[1]) / 2;
-    }
-
     fg.cameraPosition(
       { x: centerX, y: centerY, z: centerZ + 200 },
       { x: centerX, y: centerY, z: centerZ },
       3000
     );
+  };
+
+  const handleFilterByRange = (rangeKey: string) => {
+    const selectedRange = adjustmentRanges.find((r) => r.id === rangeKey);
+    if (!selectedRange || !initGraphData) return;
+
+    if (activeRange === rangeKey) {
+      setCurrentGraphData(initGraphData);
+      setActiveRange(null);
+      return;
+    }
+
+    const filteredSegments = initGraphData.nodes.filter(
+      (n) =>
+        n.type === "Segment" &&
+        typeof n.adjustment === "number" &&
+        n.adjustment > selectedRange.from &&
+        n.adjustment <= selectedRange.to
+    );
+
+    const allowedSegmentIds = new Set(filteredSegments.map((n) => n.id));
+
+    const filteredNodes = initGraphData.nodes.filter(
+      (n) => n.type !== "Segment" || allowedSegmentIds.has(n.id)
+    );
+
+    const visibleNodeIds = new Set(filteredNodes.map((n) => n.id));
+
+    const filteredLinks = initGraphData.links.filter((l) =>
+      visibleNodeIds.has(typeof l.target === "string" ? l.target : l.target.id)
+    );
+
+    setFreezeLayout(true);
+
+    setCurrentGraphData({
+      nodes: filteredNodes,
+      links: filteredLinks,
+    });
+
+    setActiveRange(rangeKey);
   };
 
   useEffect(() => {
@@ -245,46 +175,11 @@ export const ExpandableGraph = ({
   }, [graphData, reset]);
 
   useEffect(() => {
-    if (!exactsData) return;
-    handleAddExacts();
-  }, [exactsData]);
-
-  useEffect(() => {
     if (exactsData) return;
     if (fgRef.current) {
       fgRef.current.cameraPosition({ x: 0, y: 0, z: 180 }, undefined, 0);
     }
   }, [initGraphData]);
-
-  useEffect(() => {
-    if (!exactsData || !fgRef.current) return;
-    if (hideNodes.current) {
-      hideNodes.current = false;
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      const nodesLength = currentGraphData?.nodes?.length ?? -1;
-      const { centerX, centerY, centerZ } = calculateCenter(
-        nodesLength,
-        segmentSelected.current,
-        initGraphData,
-        initNodes.current
-      );
-
-      const fg = fgRef.current;
-      if (fg) {
-        fg.d3Force("center")
-          ?.x(centerX * 3)
-          .y(centerY * 3)
-          .z(centerZ * 3);
-        // fg.d3ReheatSimulation();
-        //centerCameraToGraph();
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [currentGraphData]);
 
   return (
     <div ref={ref} className="npm-graph-container">
@@ -292,7 +187,10 @@ export const ExpandableGraph = ({
       <h2 className="current-settings-text">
         This graph reflects your current iOffer algorithms
       </h2>
-      <DealerRangeIndicator />
+      <DealerRangeIndicator
+        activeRange={activeRange}
+        onSelectRange={handleFilterByRange}
+      />
       <ControlsIndicator />
       <div onClick={handleResetGraph} className="graph-reset-button">
         <ReloadIcon />
@@ -316,7 +214,7 @@ export const ExpandableGraph = ({
         backgroundColor="#FFFFFF"
         // onNodeClick={handleClick}
         onNodeHover={handleHover}
-        cooldownTicks={400}
+        cooldownTicks={freezeLayout ? 0 : 400}
         showNavInfo={false}
         linkDirectionalArrowLength={3}
         linkDirectionalArrowRelPos={0.9}
@@ -337,27 +235,6 @@ export const ExpandableGraph = ({
         }
         nodeColor={() => "#ffffff"}
         nodeThreeObject={(node) => {
-          if (
-            !exactsData &&
-            node.x !== undefined &&
-            node.y !== undefined &&
-            node.z !== undefined
-          ) {
-            const initNode: GraphNode = {
-              id: node.id,
-              name: node.name,
-              type: node.type,
-              color: node.color,
-              fx: node.x,
-              fy: node.y,
-              fz: node.z,
-            };
-
-            if (!initNodes.current.find((n) => n.name === initNode.name)) {
-              initNodes.current = [...initNodes.current, initNode];
-            }
-          }
-
           let color = new Color(node.color);
 
           switch (node.type) {
@@ -379,9 +256,9 @@ export const ExpandableGraph = ({
             geom,
             new MeshStandardMaterial({
               color: color,
-              emissive: color, 
-              emissiveIntensity: 0.5, 
-              metalness: 0.3, 
+              emissive: color,
+              emissiveIntensity: 0.5,
+              metalness: 0.3,
               roughness: 0.2,
             })
           );

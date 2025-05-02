@@ -1,30 +1,33 @@
 import { FlagIcon } from "../assets/FlagIcon";
+import { adjustmentRanges } from "../utils/adjusmentsRange";
 
-const DealerRangeIndicator = () => {
-  return (
-    <div className="dealer-range-container">
-      <div className="dealer-range-group">
-        <FlagIcon className="range-1" />
-        <span>110% &lt; x ≤ 120%</span>
+export const DealerRangeIndicator = ({
+  activeRange,
+  onSelectRange,
+}: {
+  activeRange: string | null;
+  onSelectRange: (rangeKey: string) => void;
+}) => (
+  <div className="dealer-range-container">
+    {adjustmentRanges.map((item, idx) => (
+      <div
+        key={idx}
+        className={`dealer-range-group ${
+          activeRange === item.id
+            ? "active-range"
+            : activeRange
+            ? "inactive-range"
+            : ""
+        }`}
+        onClick={() => onSelectRange(item.id)}
+      >
+        <FlagIcon className={item.id} />
+        <div className="range-values">
+          <span className="range-left">{item.from}%</span>
+          <span className="range-separator">-</span>
+          <span className="range-right">{item.to}%</span>
+        </div>
       </div>
-      <div className="dealer-range-group">
-        <FlagIcon className="range-2" />
-        <span>105% &lt; x ≤ 110%</span>
-      </div>
-      <div className="dealer-range-group">
-        <FlagIcon className="range-3" />
-        <span>95% &lt; x ≤ 105%</span>
-      </div>
-      <div className="dealer-range-group">
-        <FlagIcon className="range-4" />
-        <span>90% &lt; x ≤ 95%</span>
-      </div>
-      <div className="dealer-range-group">
-        <FlagIcon className="range-5" />
-        <span>80% &lt; x ≤ 90%</span>
-      </div>
-    </div>
-  );
-};
-
-export default DealerRangeIndicator;
+    ))}
+  </div>
+);

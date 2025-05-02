@@ -7,8 +7,6 @@ const RANGE_4 = "#B19CD9";
 const RANGE_5 = "#9C0F5F";
 const RANGE_DEFAULT = "#9C0F5F";
 
-const COLOR_POOL = [RANGE_1, RANGE_2, RANGE_3, RANGE_4, RANGE_5];
-
 export const getColorByAdjustment = (adjustment: number) => {
   if (adjustment > 110 && adjustment <= 120) return new Color(RANGE_1);
   if (adjustment > 105 && adjustment <= 110) return new Color(RANGE_2);
