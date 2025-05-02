@@ -212,7 +212,6 @@ export const ExpandableGraph = ({
         graphData={currentGraphData}
         enableNodeDrag={false}
         backgroundColor="#FFFFFF"
-        // onNodeClick={handleClick}
         onNodeHover={handleHover}
         cooldownTicks={freezeLayout ? 0 : 400}
         showNavInfo={false}

@@ -15,7 +15,7 @@ export default defineConfig({
   esbuildOptions(options) {
     options.alias = {
       ...(options.alias || {}),
-      three: path.resolve("node_modules/three"), // No uses __dirname, Vite y tsup asumen raíz
+      three: path.resolve("node_modules/three"),
     };
   },
 });

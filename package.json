@@ -1,6 +1,6 @@
 {
   "name": "npm_graph_component",
-  "version": "3.4.2",
+  "version": "3.4.3",
   "description": "Interactive 3D graph visualization component for React using Three.js and react-force-graph-3d",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
