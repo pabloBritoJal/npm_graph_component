@@ -131,47 +131,47 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
     );
 
   return (
-    <div className="npm-graph-dashboard-container" ref={setContainerRef}>
-      <div
-        className="npm-graph-dashboard-container"
-        style={{ display: isModalOpen ? "none" : "block" }}
-      >
-        {isLoading && <DefaultSpinner />}
-        {graphData && (
-          <ExpandableGraph
-            graphData={graphData}
-            exactsData={exactsData}
-            getExacts={handleAddExacts}
-            reset={reset}
-            resetData={resetData}
-            maxNodes={maxNodes}
-            isLoading={graphLoading}
-            closeModal={closeModal}
-            openModal={openModal}
-            isInModal={isModalOpen}
-          />
-        )}
-      </div>
-      {isModalOpen && (
-        <Modal>
-          {isLoading && <DefaultSpinner />}
+    <div style={{ width: "100%", height: "100%" }}>
+      {(isLoading || graphLoading) && <DefaultSpinner />}
+      <div className="npm-graph-dashboard-container" ref={setContainerRef}>
+        <div
+          className="npm-graph-dashboard-container"
+          style={{ display: isModalOpen ? "none" : "block" }}
+        >
           {graphData && (
             <ExpandableGraph
-              key={`modal-graph-${forceGraphKey}`}
               graphData={graphData}
               exactsData={exactsData}
               getExacts={handleAddExacts}
               reset={reset}
               resetData={resetData}
               maxNodes={maxNodes}
-              isLoading={graphLoading}
               closeModal={closeModal}
               openModal={openModal}
               isInModal={isModalOpen}
             />
           )}
-        </Modal>
-      )}
+        </div>
+        {isModalOpen && (
+          <Modal>
+            {isLoading && <DefaultSpinner />}
+            {graphData && (
+              <ExpandableGraph
+                key={`modal-graph-${forceGraphKey}`}
+                graphData={graphData}
+                exactsData={exactsData}
+                getExacts={handleAddExacts}
+                reset={reset}
+                resetData={resetData}
+                maxNodes={maxNodes}
+                closeModal={closeModal}
+                openModal={openModal}
+                isInModal={isModalOpen}
+              />
+            )}
+          </Modal>
+        )}
+      </div>
     </div>
   );
 };

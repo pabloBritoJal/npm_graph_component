@@ -27,6 +27,7 @@ import { ContractionIcon } from "../assets/ContractIcon";
 import { CollapseIcon } from "../assets/CollapseIcon";
 import { adjustmentRanges } from "../utils/adjusmentsRange";
 import { DealerRangeIndicator } from "./DealerRangeIndicator";
+import { DealerLabel } from "./SectionsLabale";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -35,7 +36,6 @@ interface ExpandableGraphProps {
   reset: boolean;
   resetData: () => Promise<void>;
   maxNodes: number;
-  isLoading: boolean;
   openModal: () => Promise<void>;
   closeModal: () => Promise<void>;
   isInModal: boolean;
@@ -46,7 +46,6 @@ export const ExpandableGraph = ({
   exactsData,
   reset,
   resetData,
-  isLoading,
   openModal,
   closeModal,
   isInModal,
@@ -114,15 +113,9 @@ export const ExpandableGraph = ({
     if (!fgRef.current) return;
     const fg = fgRef.current;
 
-    let centerX = 0;
-    let centerY = 0;
-    let centerZ = 180;
+    const distance = 200;
 
-    fg.cameraPosition(
-      { x: centerX, y: centerY, z: centerZ + 200 },
-      { x: centerX, y: centerY, z: centerZ },
-      3000
-    );
+    fg.cameraPosition({ x: 0, y: 0, z: distance }, undefined, 2000);
   };
 
   const handleFilterByRange = (rangeKey: string) => {
@@ -183,7 +176,6 @@ export const ExpandableGraph = ({
 
   return (
     <div ref={ref} className="npm-graph-container">
-      {isLoading && <DefaultSpinner />}
       <h2 className="current-settings-text">
         This graph reflects your current iOffer algorithms
       </h2>
@@ -204,6 +196,7 @@ export const ExpandableGraph = ({
       >
         {isInModal ? <ContractionIcon /> : <CollapseIcon />}
       </div>
+      <DealerLabel/>
       <ForceGraph3D
         key={forceResetId}
         ref={fgRef}
