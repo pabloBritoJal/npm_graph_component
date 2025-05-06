@@ -5,8 +5,8 @@ export const DealerLabel = () => (
         <defs>
           <radialGradient id="dealer-sphere" cx="20%" cy="20%" r="70%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-            <stop offset="40%" stopColor="#0089d3" />
-            <stop offset="100%" stopColor="#0089d3" />
+            <stop offset="40%" stopColor="#0264bf" />
+            <stop offset="100%" stopColor="#0264bf" />
           </radialGradient>
         </defs>
         <circle cx="10" cy="10" r="8" fill="url(#dealer-sphere)" />

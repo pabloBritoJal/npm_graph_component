@@ -176,9 +176,9 @@ export const ExpandableGraph = ({
 
   return (
     <div ref={ref} className="npm-graph-container">
-      <h2 className="current-settings-text">
+      <p className="current-settings-text">
         This graph reflects your current iOffer algorithms
-      </h2>
+      </p>
       <DealerRangeIndicator
         activeRange={activeRange}
         onSelectRange={handleFilterByRange}
@@ -231,7 +231,7 @@ export const ExpandableGraph = ({
 
           switch (node.type) {
             case "Dealer":
-              color = new Color("#0089d3");
+              color = new Color("#0264bf");
               break;
             case "Heading":
               color = new Color("#6FB5E4");
