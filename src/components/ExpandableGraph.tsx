@@ -18,7 +18,6 @@ import {
   GetDealersGraphQuery,
 } from "../apollo/generated/graphql";
 import { createTextSprite } from "../utils/createToolTip";
-import DefaultSpinner from "./DefaultSpinner";
 import ControlsIndicator from "./ControlsIndicator";
 import { getColorByAdjustment } from "../utils/getRangeColor";
 import { ReloadIcon } from "../assets/ReloadIcon";
@@ -28,6 +27,7 @@ import { CollapseIcon } from "../assets/CollapseIcon";
 import { adjustmentRanges } from "../utils/adjusmentsRange";
 import { DealerRangeIndicator } from "./DealerRangeIndicator";
 import { DealerLabel } from "./SectionsLabale";
+import SegmentSelector from "./SegmentSelector";
 
 interface ExpandableGraphProps {
   graphData: GetDealersGraphQuery;
@@ -40,6 +40,21 @@ interface ExpandableGraphProps {
   closeModal: () => Promise<void>;
   isInModal: boolean;
 }
+
+interface CenterPoint {
+  x: number;
+  y: number;
+  z: number;
+}
+
+const segments = [
+  "Compact",
+  "Sedan",
+  "SUV",
+  "Pickup",
+  "Convertible",
+  "Hatchback",
+];
 
 export const ExpandableGraph = ({
   graphData,
@@ -63,6 +78,10 @@ export const ExpandableGraph = ({
   const [forceResetId, setForceResetId] = useState<number>(1);
 
   const [freezeLayout, setFreezeLayout] = useState(false);
+
+  const [segmentsList, setSegmentsList] = useState<string[] | null>(null);
+
+  const [selectedSegment, setSelectedSegment] = useState<string>("");
 
   const { ref, width, height } = useContainerSize();
 
@@ -103,6 +122,9 @@ export const ExpandableGraph = ({
         nodes: onlyInitNodes,
         links: [...initGraphData.links],
       };
+      const segmentAmount = onlyInitGraphData.nodes.filter(
+        (n) => n.type == "Segment"
+      ).length;
       setCurrentGraphData(onlyInitGraphData);
     }
 
@@ -123,6 +145,9 @@ export const ExpandableGraph = ({
     if (!selectedRange || !initGraphData) return;
 
     if (activeRange === rangeKey) {
+      const segmentAmount = initGraphData.nodes.filter(
+        (n) => n.type == "Segment"
+      ).length;
       setCurrentGraphData(initGraphData);
       setActiveRange(null);
       return;
@@ -162,6 +187,14 @@ export const ExpandableGraph = ({
     if (graphData) {
       const initData = getInitialGraphData();
       setInitGraphData(initData);
+      const list =
+        initData?.nodes.reduce<string[]>((acc, current) => {
+          if (current.type === "Segment") {
+            acc.push(current.name);
+          }
+          return acc;
+        }, []) ?? [];
+      setSegmentsList(list);
       setCurrentGraphData(initData);
       setForceResetId((prev) => prev + 1);
     }
@@ -173,6 +206,35 @@ export const ExpandableGraph = ({
       fgRef.current.cameraPosition({ x: 0, y: 0, z: 180 }, undefined, 0);
     }
   }, [initGraphData]);
+
+  useEffect(() => {
+    if (!selectedSegment || !fgRef.current || !currentGraphData) return;
+
+    const targetNode = currentGraphData.nodes.find(
+      (n) => n.type === "Segment" && n.name === selectedSegment
+    );
+
+    if (
+      targetNode &&
+      "x" in targetNode &&
+      "y" in targetNode &&
+      "z" in targetNode
+    ) {
+      fgRef.current.cameraPosition(
+        {
+          x: targetNode.x as number,
+          y: targetNode.y as number,
+          z: (targetNode.z as number) + 30,
+        },
+        {
+          x: targetNode.x as number,
+          y: targetNode.y as number,
+          z: targetNode.z as number,
+        },
+        2000
+      );
+    }
+  }, [selectedSegment]);
 
   return (
     <div ref={ref} className="npm-graph-container">
@@ -187,8 +249,12 @@ export const ExpandableGraph = ({
       <div onClick={handleResetGraph} className="graph-reset-button">
         <ReloadIcon />
       </div>
-      <div onClick={centerCameraToGraph} className="graph-center-button">
-        <CenterFocusIcon />
+      <div className="graph-center-button">
+        <CenterFocusIcon onClick={() => centerCameraToGraph()} />
+        <SegmentSelector
+          segments={segmentsList}
+          setSelectedSegment={(value) => setSelectedSegment(value)}
+        />
       </div>
       <div
         onClick={isInModal ? closeModal : openModal}
@@ -196,7 +262,7 @@ export const ExpandableGraph = ({
       >
         {isInModal ? <ContractionIcon /> : <CollapseIcon />}
       </div>
-      <DealerLabel/>
+      <DealerLabel />
       <ForceGraph3D
         key={forceResetId}
         ref={fgRef}
