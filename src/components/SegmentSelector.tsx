@@ -25,6 +25,7 @@ const SegmentSelector: React.FC<SegmentSelectorProps> = ({
   return (
     <div className="selector-segment-section">
       <div
+      className="selector-segment-icons"
         onClick={() => {
           setShowSelectorSegment((prev) => !prev);
         }}

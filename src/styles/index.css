@@ -157,7 +157,7 @@
 
 .graph-center-button {
   position: absolute;
-  top: 30px;
+  top: 40px;
   left: 0px;
   color: #747272;
   font-size: 24px;
@@ -259,6 +259,13 @@
   align-items: center;
 }
 
+.selector-segment-icons {
+  height: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
 .graph-dropdown-container {
   position: relative;
   width: 100%;
@@ -271,6 +278,7 @@
 
 .graph-dropdown-container ul {
   list-style-type: none;
+  padding: 0;
 }
 
 .graph-dropdown-input {
@@ -329,7 +337,7 @@
 .graph-dropdown-list::-webkit-scrollbar-thumb {
   background-color: #bbb;
   border-radius: 8px;
-  border: 2px solid transparent; 
+  border: 2px solid transparent;
   background-clip: content-box;
 }
 

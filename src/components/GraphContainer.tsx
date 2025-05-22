@@ -53,6 +53,7 @@ export const GraphContainer = ({ dealerId, maxNodes }: GraphContainerProps) => {
   } = useGetDealersGraphQuery({
     variables: { dealerId },
     fetchPolicy: "network-only",
+    errorPolicy: "all",
   });
 
   const { refetch: fetchExacts } = useGetAllExactsBySegmentQuery({
