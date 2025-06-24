@@ -1,4 +1,4 @@
-schema: "https://iofferdata.com/graph_api/graphql"
+schema: "http://140.82.18.35:3000/graphql"
 documents: "src/apollo/queries/**/*.graphql"
 generates:
   src/apollo/generated/graphql.tsx:

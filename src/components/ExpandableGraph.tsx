@@ -203,7 +203,8 @@ export const ExpandableGraph = ({
   useEffect(() => {
     if (exactsData) return;
     if (fgRef.current) {
-      fgRef.current.cameraPosition({ x: 0, y: 0, z: 180 }, undefined, 0);
+      fgRef.current.d3Force("charge")?.strength(-20);
+      fgRef.current.cameraPosition({ x: 0, y: 0, z: 300 }, undefined, 0);
     }
   }, [initGraphData]);
 
@@ -303,6 +304,9 @@ export const ExpandableGraph = ({
               color = new Color("#6FB5E4");
               break;
             case "Segment":
+              color = getColorByAdjustment(node.adjustment ?? 0);
+              break;
+            case "Exact":
               color = getColorByAdjustment(node.adjustment ?? 0);
               break;
           }
